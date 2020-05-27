@@ -1,0 +1,40 @@
+<ngx-crud-styles></ngx-crud-styles>
+<mat-table class="crud-table" #table matSort matSortDisableClear [dataSource]="dataSource" *ngIf="dataready | async">
+  <div class="loading-shade" *ngIf="isLoadingResults">
+    <mat-spinner></mat-spinner>
+  </div>
+  <!-- array of fields -->
+  <ng-container matColumnDef="{{field.name}}" *ngFor="let field of metaTableInfo?.fields">
+    <mat-header-cell fxFlex="{{getflexParameter(field)}}" mat-sort-header fxLayout="row"
+      [class.number-field]="field.type === ControlType.number"
+      fxLayoutAlign="{{field.type === ControlType.number ? 'end': 'start'}}" *matHeaderCellDef disableClear="true">
+      <span>{{field.label}}</span>
+    </mat-header-cell>
+    <mat-cell fxFlex="{{getflexParameter(field)}}" fxLayout="row"
+      [class.number-field]="field.type === ControlType.number"
+      fxLayoutAlign="{{field.type === ControlType.number ? 'end center': 'start center'}}" *matCellDef="let row">
+      <span>{{getFieldValue(row, field, isFormLevel, metaTableInfo)}}</span>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Add / Edit -->
+  <ng-container matColumnDef="edit">
+    <mat-header-cell fxFlex="1 1 100px" class="action-container" *matHeaderCellDef fxLayout="row"
+      fxLayoutAlign="end center">
+      <button mat-icon-button matTooltip="Add row" (click)="createEntry()" [disabled]="isAddButtonDisabled()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </mat-header-cell>
+    <mat-cell fxFlex="1 1 100px" class="action-container" *matCellDef="let row" fxLayout="row" fxLayoutAlign="end end">
+      <button mat-icon-button matTooltip="Delete row" (click)="deleteEntry(row)" [disabled]="!isDeleteButtonEnabled()">
+        <mat-icon>delete</mat-icon>
+      </button>
+      <button mat-icon-button matTooltip="Edit row" (click)="updateEntry(row)" [disabled]="isReadonly">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+</mat-table>

@@ -1,0 +1,218 @@
+/*
+  cdk-overlay-container
+  crud-modal-container-tab
+  ./.
+  crud-modal-container-page
+  mat-dialog-container
+  ngx-crud-form
+  .crud-form
+  mat-dialog-content
+  mat-tab-group
+  .mat-tab-body-wrapper
+  mat-tab-body
+  .mat-tab-body-content
+  mat-card
+  mat-card-content
+  ngx-crud-fields
+  */
+
+ngx-crud-fields {
+  mat-form-field {
+    width: calc(100% - 10px) !important;
+    min-width: unset !important;
+  }
+}
+
+ngx-crud-table,
+ngx-base-data-table {
+  mat-table,
+  app-generic-table {
+    width: 100%;
+
+    mat-cell:first-of-type,
+    mat-header-cell:first-of-type,
+    mat-footer-cell:first-of-type {
+      padding-left: 0;
+    }
+    mat-cell,
+    mat-header-cell {
+      margin-right: 0;
+    }
+    mat-header-cell:not(number-field) > div {
+      margin-right: 10px;
+      span {
+        text-align: left;
+      }
+    }
+
+    mat-cell:not(number-field) span {
+      margin-right: 10px;
+      text-align: left;
+    }
+
+    mat-header-cell.number-field > div {
+      margin-right: 5px;
+      span {
+        text-align: right;
+      }
+    }
+
+    mat-cell.number-field {
+      margin-right: 5px;
+      padding-right: 20px;
+      span {
+        margin-right: 0;
+        text-align: right;
+      }
+    }
+  }
+}
+
+ngx-crud-form {
+  max-width: none !important;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+
+  .mat-card-header-text {
+    margin: 0;
+  }
+
+  .generic-checkbox {
+    margin: 6px;
+  }
+
+  .mat-dialog-title {
+    margin: 8px 0 0 24px;
+  }
+
+  mat-dialog-actions {
+    margin-bottom: 8px !important;
+    margin-right: 32px;
+    position: absolute;
+    right: 24px;
+    bottom: 0;
+  }
+
+  .mat-tab-header {
+    margin-left: 24px;
+  }
+
+  .mat-form-field-type-mat-select .mat-form-field-wrapper {
+    width: 100%;
+  }
+}
+
+// crud form with tab
+.crud-modal-container-tab {
+  height: 80vh;
+  max-height: 100% !important;
+  width: 100%;
+  margin-top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+
+  mat-dialog-container {
+    position: relative;
+    padding: 12px 0 70px 0;
+
+    ngx-crud-form {
+      position: absolute !important;
+      z-index: 100;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      min-height: 400px;
+      min-width: 400px;
+
+      .crud-form {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        z-index: 101;
+        // height: 70vh !important;
+
+        mat-tab-group {
+          height: 100%;
+        }
+
+        mat-dialog-content {
+          overflow-y: hidden;
+          flex: 1;
+          display: flex;
+          padding: 0 !important;
+          margin: 0 !important;
+          height: 100%;
+          margin-top: 10px !important;
+
+          .mat-tab-body-wrapper {
+            height: 100%;
+            margin-left: 24px;
+
+            mat-tab-body {
+              bottom: 40px;
+              position: absolute !important;
+
+              mat-card {
+                padding: 12px 12px 0 12px !important;
+                height: fit-content;
+                // display: table !important;
+                width: 100%;
+                right: 8px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// crud form without tab
+.crud-modal-container-page {
+  height: auto;
+  max-height: 80%;
+  margin-top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+
+  mat-dialog-container {
+    overflow-y: hidden;
+    position: relative;
+    padding: 12px 0 70px 0;
+    margin-top: 0% !important;
+    margin-bottom: 0 !important;
+    bottom: 0;
+
+    .mat-dialog-content {
+      margin: 12px 0 0 0;
+      padding-bottom: 0;
+      &.mat-dialog-content {
+        max-height: 60vh !important;
+      }
+
+      form {
+        position: absolute;
+        display: contents;
+        top: 60px;
+        bottom: 70px;
+        left: 12px;
+        right: 0;
+        overflow: auto;
+        padding-right: 12px;
+
+        mat-card {
+          width: 100%;
+          bottom: 12px;
+          padding: 12px;
+        }
+      }
+    }
+  }
+}

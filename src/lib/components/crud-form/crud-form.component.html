@@ -1,0 +1,70 @@
+<ngx-crud-styles></ngx-crud-styles>
+<div class="crud-form dialog">
+  <div mat-dialog-title>
+    {{metaInfo.title}}
+  </div>
+  <mat-dialog-content fxLayout="column" fxLayoutAlign="stretch stretch">
+    <mat-tab-group *ngIf="hasTabs()" (selectedTabChange)="tabClick($event)" [disableRipple]="true">
+      <ng-container *ngFor="let page of pages; let pageIndex = index">
+        <mat-tab label="{{getTabLabel(pageIndex)}}" [disabled]="hasFormChanged() && pageIndex > 0">
+          <form [formGroup]="getForm(pageIndex)">
+            <ng-template matTabContent>
+              <mat-card fxLayout="row" fxFlex>
+                <mat-card-content fxFlex>
+                  <ng-container *ngIf="pageIndex === 0">
+                    <ng-container *ngFor="let group of page">
+                      <mat-card-subtitle *ngIf="getGroupHeader(group)">{{getGroupHeader(group)}}
+                      </mat-card-subtitle>
+                      <div *ngFor="let lines of group" fxLayout="row" fxLayoutAlign="start stretch">
+                        <ng-container *ngFor="let field of lines">
+                          <ngx-crud-fields [parentForm]="getForm(pageIndex)" [field]="field"
+                            [metaInfoSelector]="getMetaInfoSelector(pageIndex)" *ngIf="isEnabled(field)"
+                            fxFlex="{{getFlexParameter(field)}}" (refreshTableData)="onRefreshTableData($event)">
+                          </ngx-crud-fields>
+                        </ng-container>
+                      </div>
+                    </ng-container>
+                  </ng-container>
+                  <ng-container *ngIf="pageIndex > 0">
+                    <ngx-crud-table fxfill [listData]="getJoinedTableData(pageIndex) | async"
+                      [metaInfoSelector]="getMetaInfoSelector(pageIndex)" [isFormLevel]="true"
+                      [sourceField]="getPrimaryKey(pageIndex)" [parentData]="crudFormParameter.data"
+                      [parentMetaInfoselector]="metaInfoSelector" (refreshTableData)="onRefreshTableData($event)">
+                    </ngx-crud-table>
+                  </ng-container>
+                </mat-card-content>
+              </mat-card>
+            </ng-template>
+          </form>
+        </mat-tab>
+      </ng-container>
+    </mat-tab-group>
+
+    <form *ngIf="!hasTabs()" [formGroup]="getForm(0)">
+      <mat-card fxLayout="column">
+        <mat-card-content fxLayout="column" fxLayoutAlign="begin stretch">
+          <ng-container *ngFor="let group of pages[0]">
+            <mat-card-subtitle *ngIf="getGroupHeader(group)">{{getGroupHeader(group)}}
+            </mat-card-subtitle>
+            <div *ngFor="let lines of group" fxLayout="row" fxLayoutAlign="start stretch">
+              <ng-container *ngFor="let field of lines">
+                <ngx-crud-fields [parentForm]="getForm(0)" [field]="field"
+                  [metaInfoSelector]="crudFormParameter.metaInfoSelector" *ngIf="isEnabled(field)"
+                  (refreshTableData)="onRefreshTableData($event)" fxFlex="{{getFlexParameter(field)}}">
+                </ngx-crud-fields>
+              </ng-container>
+            </div>
+          </ng-container>
+        </mat-card-content>
+      </mat-card>
+    </form>
+
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-raised-button mat-dialog-close tabindex="-1" (click)="closeForm()">Cancel</button>
+    <button *ngIf="showApplyButton()" [disabled]="isApplyButtonDisabled()" mat-raised-button (click)="applyForm()"
+      color="primary">Apply</button>
+    <button [disabled]="isSaveButtonDisabled || tabIndex > 0" mat-raised-button (click)="saveForm()"
+      color="primary">Ok</button>
+  </mat-dialog-actions>
+</div>

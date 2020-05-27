@@ -1,0 +1,50 @@
+{
+  "name": "ngx-crud-meta-form",
+  "version": "0.0.3",
+  "description": "Library to support the meta info controlled edit of base data",
+  "author": "Ingolf Thomas",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.lunorsys.de/scm/cmclfa/crud.li-repository.git"
+  },
+  "bugs": "",
+  "homepage": "",
+  "keywords": [
+    "angular",
+    "typescript",
+    "angular-material",
+    "crud form",
+    "crud table",
+    "crud editor",
+    "meta info",
+    "base data"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular-devkit/schematics": "^9.1.0",
+    "@angular/animations": "^9.1.2",
+    "@angular/cdk": "^9.2.1",
+    "@angular/cli": "^9.1.1",
+    "@angular/common": "^9.1.2",
+    "@angular/compiler": "^9.1.2",
+    "@angular/core": "^9.1.2",
+    "@angular/flex-layout": "^9.0.0-beta.29",
+    "@angular/forms": "^9.1.2",
+    "@angular/material": "^9.2.1",
+    "@angular/material-moment-adapter": "^9.2.1",
+    "@angular/platform-browser": "^9.1.2",
+    "@angular/platform-browser-dynamic": "^9.1.2",
+    "@angular/router": "^9.1.2",
+    "@types/node": "^13.11.1",
+    "cldr": "^5.6.0",
+    "cldr-data": "^36.0.0",
+    "lodash": "^4.17.15",
+    "moment": "^2.24.0",
+    "rxjs": "^6.5.5",
+    "rxjs-compat": "^6.5.5",
+    "sockjs-client": "^1.4.0",
+    "tslib": "^1.11.1",
+    "zone.js": "^0.10.3"
+  },
+  "dependencies": {}
+}

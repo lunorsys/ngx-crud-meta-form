@@ -1,0 +1,11 @@
+.base-data-table {
+  .number-field {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 30px;
+  }
+
+  mat-form-field .clear-button .mat-icon {
+    font-size: 20px;
+  }
+}

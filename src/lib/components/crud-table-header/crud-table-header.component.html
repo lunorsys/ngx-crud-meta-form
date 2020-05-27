@@ -1,0 +1,27 @@
+<ngx-crud-styles></ngx-crud-styles>
+<div fxLayout.gt-xs="row" fxLayoutAlign.gt-xs="space-between center" fxLayout="column"
+  fxLayoutAlign="space-between start" class="header-container">
+  <div fxLayout="column" class="header-name">
+    <section class="mat-typography">
+      <h2 class="title" matDialogTitle>{{ title }}</h2>
+      <span>{{ subtitle }}</span>
+    </section>
+  </div>
+  <div fxFlex="1 1 auto"></div>
+  <div fxFlex="0 1 auto" class="toolbar-container">
+    <mat-toolbar class="header-toolbar" *ngIf="hasContent">
+      <mat-toolbar-row>
+        <ng-content></ng-content>
+        <mat-form-field *ngIf="showSearch" fxFlex="0 1 auto" class="search-field">
+          <mat-label>Search</mat-label>
+          <input matInput (keyup)="onApplyFilter()" [(ngModel)]="filterValue" placeholder="What are you looking for?">
+          <mat-icon matSuffix *ngIf="!hasFilterValue()">search</mat-icon>
+          <button class="clear-button" mat-button *ngIf="hasFilterValue()" matSuffix mat-icon-button aria-label="Clear"
+            (click)="clearFilterValue()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </mat-toolbar-row>
+    </mat-toolbar>
+  </div>
+</div>

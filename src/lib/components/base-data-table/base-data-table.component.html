@@ -1,0 +1,47 @@
+<ngx-crud-styles></ngx-crud-styles>
+<div fxLayoutAlign="center center" class="base-data-table">
+  <div class="loading-shade" *ngIf="isLoadingResults | async">
+    <mat-spinner></mat-spinner>
+  </div>
+  <mat-card>
+    <mat-card-header fxLayout="row" fxLayoutAlign="space-between start">
+      <ngx-crud-table-header [formGroup]="form" fxFill [title]="'Base Data'" [subtitle]="'Table of ' + metaInfo?.title"
+        (applyFilter)="applyFilter($event)">
+        <!--<div *ngIf="fieldFilter">
+          <div *ngIf="fieldFilter.type === ControlType.lookupSelect">
+             <mat-form-field floatLabel="never" [style.width]="getFieldWidth(fieldFilter)">
+              <mat-select placeholder="{{fieldFilter.label}}" [formControlName]="fieldFilter.name">
+                <mat-option *ngFor="let item of fieldFilter?.lookup? | async" [value]="item">
+                  {{displayLookupListValue(fieldFilter, item)}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>-->
+
+        <!-- <div *ngIf="fieldFilter.type === ControlType.lookupAutocomplete" fxLayout="row"
+            fxLayoutAlign="space-around center">
+            <input matInput placeholder="{{fieldFilter.label}}" aria-label="fieldFilter.name"
+              [matAutocomplete]="autocomplete" required formControlName="autocomplete">
+            <button class="clear-button" mat-button *ngIf="hasFilterValue()" matSuffix mat-icon-button
+              aria-label="Clear" (click)="clearFilterValue()">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-autocomplete #autocomplete="matAutocomplete" [displayWith]="displayLookupInputValue.bind(this)"
+              (optionSelected)="autocompleteSelected($event)">
+              <mat-option *ngFor="let item of autocompleteList | async" [value]="item">
+                <span>{{displayLookupListValue(fieldFilter, item)}}</span>
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+        </div>-->
+      </ngx-crud-table-header>
+    </mat-card-header>
+    <mat-card-content fxLayout="column" fxLayoutAlign="end stretch">
+      <ngx-crud-table [listData]="getListData()" [paginator]="paginator" [filter]="filter"
+        [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
+        (refreshTableData)="onRefreshTableData($event)">
+      </ngx-crud-table>
+      <mat-paginator [pageSize]="pageLimit[0]" [pageSizeOptions]="pageLimit" showFirstLastButtons></mat-paginator>
+    </mat-card-content>
+  </mat-card>
+</div>

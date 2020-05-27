@@ -1,0 +1,28 @@
+.title {
+  margin: 0;
+}
+.subtitle {
+  margin: 0;
+}
+
+mat-form-field .clear-button .mat-icon {
+  font-size: 20px;
+}
+
+::ng-deep .mat-card-header-text {
+  margin: 0 8px;
+}
+
+.toolbar-container {
+  margin-right: 20px;
+}
+
+mat-toolbar.header-toolbar {
+  border-radius: 10px;
+  background: #f9f9f9;
+  border: 1px solid #e7e7e7;
+}
+
+.header-container {
+  margin-bottom: 20px;
+}
