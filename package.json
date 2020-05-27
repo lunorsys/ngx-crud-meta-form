@@ -1,8 +1,8 @@
 {
   "name": "ngx-crud-meta-form",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Library to support the meta info controlled edit of base data",
-  "author": "Ingolf Thomas",
+  "author": "lunorsys GmbH, www.lunorsys.de",
   "repository": {
     "type": "git",
     "url": "https://bitbucket.lunorsys.de/scm/cmclfa/crud.li-repository.git"
