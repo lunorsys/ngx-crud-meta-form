@@ -19,7 +19,7 @@
     "meta info",
     "base data"
   ],
-  "license": "MIT",
+  "license": "lunorsys license",
   "peerDependencies": {
     "@angular-devkit/schematics": "^9.1.0",
     "@angular/animations": "^9.1.2",
