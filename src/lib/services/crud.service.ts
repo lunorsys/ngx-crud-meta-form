@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { tap, mergeMap, map } from 'rxjs/operators';
 import { MetaInfoBaseService } from './meta-info-base.service';
 import { MetaInfoTag, CacheSupportLevel } from '../meta-info/meta-info.model';
-import { CRUD_CONFIG, CrudConfig } from '../models/crud-config';
+import { CrudConfig } from '../models/crud-config';
 import { CACHE_TOKEN, ICacheService } from '../interfaces/icache.service';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class CrudService {
   constructor(private http: HttpClient,
     private metaInfoBaseService: MetaInfoBaseService,
     @Inject(CACHE_TOKEN) private cacheService: ICacheService,
-    @Inject(CRUD_CONFIG) private crudConfig: CrudConfig) {
+    private crudConfig: CrudConfig) {
 
     this.baseUrl = this.crudConfig.baseUrl;
   }

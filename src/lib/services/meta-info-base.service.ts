@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@angular/core';
 //
 import { MetaInfo, GenericFieldInfo, MetaInfoTag, ControlType } from '../meta-info/meta-info.model';
 import { MetaInfoExtraDataService } from './meta-info-extra-data.service';
-import { CrudConfig, CRUD_CONFIG } from '../models/crud-config';
+import { CrudConfig } from '../models/crud-config';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +11,7 @@ export class MetaInfoBaseService {
   private metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>;
 
   constructor(private metaInfoExtraDataService: MetaInfoExtraDataService,
-    @Inject(CRUD_CONFIG) private crudConfig: CrudConfig) {
+    private crudConfig: CrudConfig) {
     this.metaInfoDefinitions = this.crudConfig.metaInfoDefinitions;
   }
 

@@ -1,4 +1,4 @@
-import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { NgModule, APP_INITIALIZER, ModuleWithProviders } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -45,7 +45,7 @@ import { BaseDataTableComponent } from './components/base-data-table/base-data-t
 import { CrudFieldsComponent } from './components/crud-fields/crud-fields.component';
 import { CrudTableComponent } from './components/crud-table/crud-table.component';
 import { CrudTableHeaderComponent } from './components/crud-table-header/crud-table-header.component';
-import { CRUD_CONFIG } from './models/crud-config';
+import { CrudConfig } from './models/crud-config';
 import { CrudLocalizeService } from './services/crud-localize.service';
 import { CrudStylesComponent } from './components/crud-styles/crud-styles.component';
 import { CrudFormComponent } from './components/crud-form/crud-form.component';
@@ -104,14 +104,14 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   providers: [
     MetaInfoBaseService,
     MetaInfoExtraDataService,
-    MetaInfoBaseService,
     CrudService,
+    CrudConfig,
     CrudLocalizeService,
     {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: initializeGlobalizeLibrary(),
-      deps: [CrudLocalizeService, CRUD_CONFIG],
+      deps: [CrudLocalizeService],
     }
   ],
   exports: [
@@ -123,9 +123,18 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   entryComponents: [],
 })
 export class NgxCrudMetaFormModule {
+  static forRoot(config: CrudConfig): ModuleWithProviders {
+    return {
+      ngModule: NgxCrudMetaFormModule,
+      providers: [{
+        provide: CrudConfig,
+        useValue: config
+      }]
+    };
+  }
 }
 
 export function initializeGlobalizeLibrary() {
   const setupFct = (crudLocalizeService: CrudLocalizeService) => crudLocalizeService.initializeGlobalizeLibrary();
   return setupFct;
-};
+}

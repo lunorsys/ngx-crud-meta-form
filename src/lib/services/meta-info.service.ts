@@ -8,7 +8,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import { CrudService } from './crud.service';
 import { MetaInfoBaseService } from './meta-info-base.service';
 import { MetaInfo, GenericFieldInfo, ControlType, MetaInfoTag, CacheSupportLevel } from '../meta-info/meta-info.model';
-import { CRUD_CONFIG, CrudConfig } from '../models/crud-config';
+import { CrudConfig } from '../models/crud-config';
 import { CACHE_TOKEN, ICacheService } from '../interfaces/icache.service';
 
 @Injectable({
@@ -24,7 +24,7 @@ export class MetaInfoService implements OnDestroy {
   constructor(
     private crudService: CrudService,
     private metaInfoBaseService: MetaInfoBaseService,
-    @Inject(CRUD_CONFIG) private crudConfig: CrudConfig,
+    private crudConfig: CrudConfig,
     @Inject(CACHE_TOKEN) private cacheService: ICacheService
   ) {
     this.metaInfoDefinitions = this.crudConfig.metaInfoDefinitions;

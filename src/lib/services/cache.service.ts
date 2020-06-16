@@ -10,7 +10,7 @@ import { SnackBarParameter, SnackBarType, SnackBarService } from './snack-bar.se
 import { CrudAction, WebSocketCacheData } from '../models/crud.model';
 import { IWebSocketService } from '../interfaces/iwebsocket.service';
 import { ICacheService } from '../interfaces/icache.service';
-import { CrudConfig, CRUD_CONFIG } from '../models/crud-config';
+import { CrudConfig } from '../models/crud-config';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +26,7 @@ export class CacheService implements OnDestroy, ICacheService {
   constructor(private http: HttpClient,
     private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
-    @Inject(CRUD_CONFIG) private crudConfig: CrudConfig,
+    private crudConfig: CrudConfig,
     @Inject(WEB_SOCKET_TOKEN) @Optional() private webSocketService: IWebSocketService) {
 
     this.baseUrl = this.crudConfig.baseUrl;
