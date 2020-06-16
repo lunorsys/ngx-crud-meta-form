@@ -106,13 +106,13 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
     MetaInfoExtraDataService,
     MetaInfoBaseService,
     CrudService,
-    CrudLocalizeService
-    // {
-    //   provide: APP_INITIALIZER,
-    //   multi: true,
-    //   useFactory: (localizeService: CrudLocalizeService) => localizeService.initializeGlobalizeLibrary(),
-    //   deps: [CrudLocalizeService, CRUD_CONFIG],
-    // }
+    CrudLocalizeService,
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: initializeGlobalizeLibrary(),
+      deps: [CrudLocalizeService, CRUD_CONFIG],
+    }
   ],
   exports: [
     BaseDataTableComponent,
@@ -122,4 +122,10 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   ],
   entryComponents: [],
 })
-export class NgxCrudMetaFormModule { }
+export class NgxCrudMetaFormModule {
+}
+
+export function initializeGlobalizeLibrary() {
+  const setupFct = (crudLocalizeService: CrudLocalizeService) => crudLocalizeService.initializeGlobalizeLibrary();
+  return setupFct;
+};
