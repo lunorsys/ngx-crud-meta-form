@@ -1,6 +1,6 @@
 {
   "name": "ngx-crud-meta-form",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Library to support the meta info controlled edit of base data",
   "author": "lunorsys GmbH, www.lunorsys.de",
   "repository": {
