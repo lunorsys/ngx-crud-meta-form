@@ -107,12 +107,12 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
     CrudService,
     CrudConfig,
     CrudLocalizeService,
-    {
-      provide: APP_INITIALIZER,
-      multi: true,
-      useFactory: initializeGlobalizeLibrary(),
-      deps: [CrudLocalizeService],
-    }
+    // {
+    //   provide: APP_INITIALIZER,
+    //   multi: true,
+    //  useFactory: initializeGlobalizeLibrary(),
+    //   deps: [CrudLocalizeService],
+    // }
   ],
   exports: [
     BaseDataTableComponent,
