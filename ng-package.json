@@ -7,10 +7,12 @@
       "@code-art/angular-globalize/schematics/cultures": "@code-art/angular-globalize/schematics/cultures",
       "@code-art/angular-globalize": "@code-art/angular-globalize",
       "angular-persistence": "angular-persistence",
+      "cldr-data": "cldr-data",
+      "clds": "cldr",
       "cldr-data/supplemental/likelySubtags.json": "cldr-data/supplemental/likelySubtags.json",
       "cldr-data/supplemental/numberingSystems.json": "cldr-data/supplemental/numberingSystems.json",
-      "globalize/dist/globalize": "globalize/dist/globalize",
       "globalize": "globalize",
+      "globalize/dist/globalize": "Globalize",
       "lodash": "lodash",
       "lodash/cloneDeep": "lodash/cloneDeep",
       "moment": "moment"

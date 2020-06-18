@@ -7,7 +7,6 @@ import { Subject, Observable, of, BehaviorSubject } from 'rxjs';
 import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 //
 import { CrudTableHeaderComponent } from '../crud-table-header/crud-table-header.component';
-import { CrudTableComponent, } from '../crud-table/crud-table.component';
 import { MetaInfo, GenericFieldInfo, ControlType, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoService } from '../../services/meta-info.service';

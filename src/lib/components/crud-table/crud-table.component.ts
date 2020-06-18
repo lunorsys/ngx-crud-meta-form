@@ -102,7 +102,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   public dataready: Observable<boolean> = of(false);
   ControlType = ControlType;
 
-  private numberFormatter;
+  private numberFormatter: (value: number) => string;
   private ngUnsubscribe = new Subject();
 
   constructor(private dialog: MatDialog,

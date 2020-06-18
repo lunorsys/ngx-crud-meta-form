@@ -28,11 +28,14 @@ export class CrudLocalizeService {
           registerLocaleData(module.default);
           const dateTimeLanguage = this.getDatetimeLanguage();
           moment.locale(dateTimeLanguage);
+        }, reject).then(() => {
           const numberLanguage = this.getNumberLanguage();
-          Globalize.load(require(`cldr-data/main/${numberLanguage}/numbers.json`));
-          Globalize.locale(numberLanguage);
-          resolve();
+          import(`cldr-data/main/${numberLanguage}/numbers.json`).then((languageModule) => {
+            Globalize.load(languageModule.default);
+            Globalize.locale(numberLanguage);
+          });
         }, reject);
+        resolve();
       });
     };
   }

@@ -5,7 +5,7 @@ import {
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { Subject, Observable, BehaviorSubject } from 'rxjs';
-import * as Globalize from 'globalize/dist/globalize';
+import Globalize from 'globalize/dist/globalize';
 import { takeUntil } from 'rxjs/operators';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { CrudFieldsComponent } from '../crud-fields/crud-fields.component';
@@ -46,6 +46,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   private ngUnsubscribe = new Subject();
   private oldModelData = {};
   private applyModelData = null;
+  private numberParser: (value: string) => number;
 
   ControlType = ControlType;
   MetaInfoTag = _MetaInfoTag;
@@ -64,6 +65,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   ngOnInit() {
+    this.numberParser = Globalize.numberParser();
     this.metaInfo = this.metaInfoService.getMetaInfoInstance(this.crudFormParameter.metaInfoSelector);
     this.updateFields = this.metaInfoService.getUpdateFields(this.metaInfo.fields);
     this.pages = this.getPages();
@@ -200,12 +202,11 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       return null;
     }
     const saveData: any = {};
-    const parser = Globalize.numberParser();
     this.updateFields.forEach(field => {
       const fieldValue = formData[field.name];
       switch (field.type) {
         case ControlType.number:
-          const numberValue = fieldValue ? parser(fieldValue) : null;
+          const numberValue = fieldValue ? this.numberParser(fieldValue) : null;
           saveData[field.name] = numberValue === null || isNaN(numberValue) ? null : numberValue;
           break;
         case ControlType.boolean:

@@ -60,7 +60,7 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
     CrudStylesComponent
   ],
   imports: [
-    AngularGlobalizeModule.forRoot(), // Import this only in root app module
+    AngularGlobalizeModule, // Import this only in root app module
     BrowserAnimationsModule,
     BrowserModule,
     CommonModule,
@@ -110,7 +110,7 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
     // {
     //   provide: APP_INITIALIZER,
     //   multi: true,
-    //  useFactory: initializeGlobalizeLibrary(),
+    //   useFactory: initializeGlobalizeLibrary(),
     //   deps: [CrudLocalizeService],
     // }
   ],
