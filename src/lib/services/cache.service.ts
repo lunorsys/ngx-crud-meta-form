@@ -1,4 +1,4 @@
-import { WEB_SOCKET_TOKEN } from './../interfaces/iwebsocket.service';
+// import { WEB_SOCKET_TOKEN } from './../interfaces/iwebsocket.service';
 import { Injectable, OnDestroy, Inject, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, BehaviorSubject, Subject, throwError, of } from 'rxjs';
@@ -7,8 +7,8 @@ import { share, takeUntil, catchError } from 'rxjs/operators';
 import { MetaInfoBaseService } from './meta-info-base.service';
 import { MetaInfo, MetaInfoTag, CacheSupportLevel } from '../meta-info/meta-info.model';
 import { SnackBarParameter, SnackBarType, SnackBarService } from './snack-bar.service';
-import { CrudAction, WebSocketCacheData } from '../models/crud.model';
-import { IWebSocketService } from '../interfaces/iwebsocket.service';
+// import { CrudAction, WebSocketCacheData } from '../models/crud.model';
+// import { IWebSocketService } from '../interfaces/iwebsocket.service';
 import { ICacheService } from '../interfaces/icache.service';
 import { CrudConfig } from '../models/crud-config';
 
@@ -26,8 +26,8 @@ export class CacheService implements OnDestroy, ICacheService {
   constructor(private http: HttpClient,
     private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
-    private crudConfig: CrudConfig,
-    @Inject(WEB_SOCKET_TOKEN) @Optional() private webSocketService: IWebSocketService) {
+    private crudConfig: CrudConfig /*,
+    @Inject(WEB_SOCKET_TOKEN) @Optional() private webSocketService: IWebSocketService */) {
 
     this.baseUrl = this.crudConfig.baseUrl;
   }
@@ -37,40 +37,42 @@ export class CacheService implements OnDestroy, ICacheService {
     this.ngUnsubscribe.complete();
   }
 
-  public initializeCache(metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>, token: string): Observable<any> {
+  public initializeCache(metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>, token: string = null): Observable<any> {
     this.metaInfoDefinitions = metaInfoDefinitions;
     this.cacheRestPathes = this.fillCachedRestPathes();
     const initializationDone$ = this.fillCachedTables(this.cacheRestPathes, true);
 
-    this.subscribeCacheData(initializationDone$, token);
+    // if (token) {
+    //   this.subscribeCacheData(initializationDone$, token);
+    // }
     return initializationDone$;
   }
 
-  private subscribeCacheData(initializationDone$: Observable<any[]>, token: string): void {
-    if (!this.webSocketService) {
-      return;
-    }
-    initializationDone$.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-      const selectors = Array.from(this.cacheRestPathes.keys());
-      selectors.forEach((selector) => {
-        this.webSocketService.watchSubsciption<WebSocketCacheData>(`topic/${selector}`, token)
-          .pipe(takeUntil(this.ngUnsubscribe)).subscribe((webSocketResult) => {
-            if (webSocketResult) {
-              console.log(`Websocket result: ${JSON.stringify(webSocketResult)}`);
+  // private subscribeCacheData(initializationDone$: Observable<any[]>, token: string): void {
+  //   if (!this.webSocketService) {
+  //     return;
+  //   }
+  //   initializationDone$.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+  //     const selectors = Array.from(this.cacheRestPathes.keys());
+  //     selectors.forEach((selector) => {
+  //       this.webSocketService.watchSubsciption<WebSocketCacheData>(`topic/${selector}`, token)
+  //         .pipe(takeUntil(this.ngUnsubscribe)).subscribe((webSocketResult) => {
+  //           if (webSocketResult) {
+  //             console.log(`Websocket result: ${JSON.stringify(webSocketResult)}`);
 
-              switch (webSocketResult.action) {
-                case CrudAction.Insert:
-                  break;
-                case CrudAction.Update:
-                  break;
-                case CrudAction.Delete:
-                  break;
-              }
-            }
-          });
-      });
-    });
-  }
+  //             switch (webSocketResult.action) {
+  //               case CrudAction.Insert:
+  //                 break;
+  //               case CrudAction.Update:
+  //                 break;
+  //               case CrudAction.Delete:
+  //                 break;
+  //             }
+  //           }
+  //         });
+  //     });
+  //   });
+  // }
 
   public get isCacheAvailable(): Observable<boolean> {
     return this.cacheDataAvailable$.pipe(share());
@@ -129,6 +131,11 @@ export class CacheService implements OnDestroy, ICacheService {
   }
 
   private handleReceivedCacheData(receivedCacheData$: Observable<any[] | unknown[]>, selectors: string[], isInitializingCache: boolean) {
+    if (!selectors.length) {
+      this.cacheDataAvailable$.next(true);
+      return;
+    }
+
     receivedCacheData$.pipe(share(), takeUntil(this.ngUnsubscribe)).subscribe((cacheResult) => {
       cacheResult.forEach((cacheInitData: any[], index: number) => {
         this.cachedTables.set(selectors[index], cacheInitData);

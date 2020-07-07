@@ -84,7 +84,6 @@ export class MetaInfo {
   restPath?: string;
   title?: string;
   fields?: GenericFieldInfo[];
-  fieldFilterInfo?: MetaInfo;
   isDeletable?: boolean;
   formWidth?: string;
   tabPages?: TabPageInfo[];

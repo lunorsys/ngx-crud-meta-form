@@ -16,6 +16,18 @@
   ngx-crud-fields
   */
 
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+// General settings
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
 ngx-crud-fields {
   mat-form-field {
     width: calc(100% - 10px) !important;
@@ -25,9 +37,10 @@ ngx-crud-fields {
 
 ngx-crud-table,
 ngx-base-data-table {
-  mat-table,
-  app-generic-table {
+  mat-table {
     width: 100%;
+    max-height: 58vh;
+    overflow: auto;
 
     mat-cell:first-of-type,
     mat-header-cell:first-of-type,
