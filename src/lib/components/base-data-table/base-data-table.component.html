@@ -1,5 +1,5 @@
 <ngx-crud-styles></ngx-crud-styles>
-<div fxLayoutAlign="center center" class="base-data-table">
+<div fxLayoutAlign="center center" class="ngx-base-data-table">
   <div class="loading-shade" *ngIf="isLoadingResults | async">
     <mat-spinner></mat-spinner>
   </div>
@@ -9,7 +9,7 @@
         (applyFilter)="applyFilter($event)">
       </ngx-crud-table-header>
     </mat-card-header>
-    <mat-card-content fxLayout="column" fxLayoutAlign="end stretch">
+    <mat-card-content fxLayout="column" fxLayoutAlign="end stretch" fxFill>
       <ngx-crud-table [listData]="listData" [paginator]="paginator" [filter]="filter"
         [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
         (refreshTableData)="onRefreshTableData($event)">
