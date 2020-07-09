@@ -1,15 +1,19 @@
-// .ngx-base-data-table {
-//   mat-table {
-//     // max-height: 38vh;
-//   }
+.ngx-base-data-table {
+  height: 100%;
+  > div {
+    height: 100%;
+    mat-table {
+      height: 100%;
+    }
+  }
 
-//   .number-field {
-//     display: flex;
-//     justify-content: flex-end;
-//     margin-right: 30px;
-//   }
+  // .number-field {
+  //   display: flex;
+  //   justify-content: flex-end;
+  //   margin-right: 30px;
+  // }
 
-//   mat-form-field .clear-button .mat-icon {
-//     font-size: 20px;
-//   }
-// }
+  // mat-form-field .clear-button .mat-icon {
+  //   font-size: 20px;
+  // }
+}
