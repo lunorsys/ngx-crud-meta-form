@@ -30,8 +30,16 @@ import { CACHE_TOKEN, ICacheService } from '../../interfaces/icache.service';
 })
 export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecked {
 
-  private init = true;
-  _listData = [];
+  @Input() paginator: MatPaginator;
+  @Input() isFormLevel = false;
+  @Input() sourceField: GenericFieldInfo;
+  @Input() parentData: any = {};
+  @Input() parentMetaInfoselector: MetaInfoTag = _MetaInfoTag.Undefined;
+  @ViewChild(MatTable) table: MatTable<any>;
+  @ViewChild(MatSort) sort: MatSort;
+  @ViewChild(MatAutocomplete) autocomplete: MatAutocomplete;
+  @Output() refreshTableData = new EventEmitter<CrudTableResult>();
+
   @Input() set listData(listData: any[]) {
     this._listData = [];
     if (this.init && listData && listData.length > 0) {
@@ -42,13 +50,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       this.dataSource.data = [];
     }
   }
-  get listData() {
+  get listData(): any[] {
     return this._listData;
   }
 
-  metaTableInfo: MetaInfo;
-  metaInfo: MetaInfo;
-  _metaInfoSelector: MetaInfoTag;
   @Input() set metaInfoSelector(metaInfoSelector: MetaInfoTag) {
 
     const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
@@ -63,23 +68,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       this.metaInfo = null;
     }
   }
-  get metaInfoSelector() {
+  get metaInfoSelector(): string {
     return this._metaInfoSelector;
   }
 
-  displayedColumns: string[];
-  _filter: string;
-  @Input() set filter(filter: string) {
-    if (this.init) {
-      this._filter = filter;
-      this.dataSource.filter = filter;
-    }
-  }
-  get filter() {
-    return this._filter;
-  }
-
-  _isReadonly: boolean;
   @Input() set isReadonly(isReadonly: boolean) {
     this._isReadonly = isReadonly;
   }
@@ -87,22 +79,31 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     return this._isReadonly;
   }
 
-  @Input() paginator: MatPaginator;
-  @Input() isFormLevel = false;
-  @Input() sourceField: GenericFieldInfo;
-  @Input() parentData: any = {};
-  @Input() parentMetaInfoselector: MetaInfoTag = _MetaInfoTag.Undefined;
-  @ViewChild(MatTable) table: MatTable<any>;
-  @ViewChild(MatSort) sort: MatSort;
-  @ViewChild(MatAutocomplete) autocomplete: MatAutocomplete;
-  @Output() refreshTableData = new EventEmitter<CrudTableResult>();
+  @Input() set filter(filter: string) {
+    if (this.init) {
+      this._filter = filter;
+      this.dataSource.filter = filter;
+    }
+  }
+  get filter(): string {
+    return this._filter;
+  }
 
+  public displayedColumns: string[];
   public isLoadingResults = true;
   public dataSource = new MatTableDataSource<any>();
   public dataready: Observable<boolean> = of(false);
+  public metaTableInfo: MetaInfo;
+  public metaInfo: MetaInfo;
   ControlType = ControlType;
 
   private numberFormatter: (value: number) => string;
+  private init = true;
+  private _listData = [];
+  private _isReadonly: boolean;
+  private _metaInfoSelector: MetaInfoTag;
+  private _filter: string;
+
   private ngUnsubscribe = new Subject();
 
   constructor(private dialog: MatDialog,
@@ -120,7 +121,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     this.listData = [];
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.numberFormatter = Globalize.numberFormatter();
     this.dataSource.filter = this.filter;
     this.cacheService.isCacheAvailable.pipe(takeUntil(this.ngUnsubscribe)).subscribe((isAvailable) => {
@@ -133,18 +134,18 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     });
   }
 
-  ngAfterContentChecked() {
+  ngAfterContentChecked(): void {
     this.cdref.detectChanges();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.dataSource.disconnect();
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
 
   private setupSortingDataAccessor(): void {
-    this.dataSource.sortingDataAccessor = (data: any, sortHeaderId: string): string | number => {
+    this.dataSource.sortingDataAccessor = (data: any[], sortHeaderId: string): string | number => {
       if (!this.metaTableInfo || !this.metaTableInfo.fields) {
         return null;
       }
@@ -171,17 +172,16 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
               const listData = this.cacheService.getCachedTable(sortField.lookup.metaInfoSelector);
               const lookupValue = listData.find((lookupItem) => lookupItem[sortHeaderId] === lookupKey);
               value = lookupValue && lookupValue[lookupValuePreSortedItem.name];
-              value = value && (value as string).toLowerCase();
+              value = (value as string)?.toLowerCase();
             }
           }
         } else {
-          value = data[sortHeaderId];
+          value = data?.length > 0 && sortHeaderId && data[sortHeaderId];
         }
       } else {
         switch (sortField.type) {
           case ControlType.string:
-            value = data[sortHeaderId];
-            value = value && (value as string).toLowerCase();
+            value = (data[sortHeaderId] as string)?.toLowerCase();
             break;
           default:
             value = data[sortHeaderId];
@@ -237,14 +237,21 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   }
 
   public createEntry(): void {
-    this.editEntry(null);
+    const data = {};
+    this.metaInfo.fields?.forEach((field) => {
+      if (field.type === ControlType.referenceByParentData) {
+        const parentKeyName = field?.parentKeyName || field.name;
+        data[field.name] = this.parentData?.[parentKeyName];
+      }
+    });
+    this.editEntry(data);
   }
 
   public editEntry(data: any): void {
     if (this.metaInfo.restPath) {
       const restPath = this.metaInfoBaseService.extractRestPath(this.metaInfo, data);
       const primaryKey = this.metaInfoBaseService.getPrimaryKeyName(this.metaInfo.fields);
-      if (restPath && primaryKey && data && data[primaryKey]) {
+      if (restPath && primaryKey && data[primaryKey]) {
         this.crudService.get(this.metaInfoSelector, data).pipe(takeUntil(this.ngUnsubscribe)).subscribe((childData) => {
           const dialogRef = this.openCrudForm(childData);
           this.afterCloseCrudForm(dialogRef, data);
@@ -252,7 +259,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
           console.log('error: ' + err);
         });
       } else {
-        const dialogRef = this.openCrudForm(data || {});
+        const dialogRef = this.openCrudForm(data);
         this.afterCloseCrudForm(dialogRef, data);
       }
     } else {
@@ -278,10 +285,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     const filteredData = this.dataSource.data.filter((item) => data !== item);
     this.listData = filteredData;
     if (this.sourceField) {
-      this.refreshTableData.next(<CrudTableResult>{
+      this.refreshTableData.next({
         data: filteredData,
         field: this.sourceField
-      });
+      } as CrudTableResult);
     }
     return filteredData;
   }
@@ -296,7 +303,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
           this.dataSource.data = this.listData;
         }
         this.setupSort();
-        this.refreshTableData.next(<CrudTableResult>{
+        this.refreshTableData.next({
           data: this.dataSource.data,
           field: this.sourceField
         });
@@ -309,7 +316,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   private openCrudForm(data: any): MatDialogRef<CrudFormComponent, CrudFormResult> {
     const matConfig: MatDialogConfig = {
       data: {
-        data: data,
+        data,
         metaInfoSelector: this.metaInfoSelector,
         isFormLevel: this.isFormLevel,
         parentData: this.parentData,
@@ -330,7 +337,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   }
 
   public getflexParameter(field: GenericFieldInfo) {
-    return field.formatOption && field.formatOption.tableFlexParameter ? field.formatOption.tableFlexParameter : '';
+    return field?.formatOption?.tableFlexParameter || '';
   }
 
   public isAddButtonDisabled(): boolean {
@@ -339,9 +346,17 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       return false;
     }
     const missingApplyData = this.metaInfo.fields.some((field) => {
-      const missingParentData = field.type === ControlType.referenceByParentData && !this.parentData?.[field.name];
-      const missingHasExtraData = field.type === ControlType.referenceByExtraData && !this.extraDataService.getExtraData(field.name);
-      return missingParentData || missingHasExtraData;
+      let isDisabled = false;
+      switch (field.type) {
+        case ControlType.referenceByParentData:
+          const parentKeyName = field?.parentKeyName || field.name;
+          isDisabled = !this.parentData?.[parentKeyName];
+          break;
+        case ControlType.referenceByExtraData:
+          isDisabled = field.required && !this.extraDataService.getExtraData(field.name);
+          break;
+      }
+      return isDisabled;
     });
 
     return missingApplyData;

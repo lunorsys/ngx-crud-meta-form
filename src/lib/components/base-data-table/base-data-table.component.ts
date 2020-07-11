@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, AfterContentChecked, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, AfterContentChecked, ChangeDetectorRef, HostBinding } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
@@ -9,7 +9,6 @@ import { CrudTableHeaderComponent } from '../crud-table-header/crud-table-header
 import { MetaInfo, GenericFieldInfo, ControlType, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoService } from '../../services/meta-info.service';
-import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { MetaInfoExtraDataService } from '../../services/meta-info-extra-data.service';
 import { CrudTableResult } from '../../models/crud.model';
 
@@ -23,6 +22,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(CrudTableHeaderComponent) tableHeader: CrudTableHeaderComponent;
+  @HostBinding('class.scroll-mode-table') enabled = true;
 
   public metaInfo: MetaInfo;
   public pageLimit = [100, 200, 500];
@@ -46,18 +46,18 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     this.metaInfoSelector = _MetaInfoTag.Undefined;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.form = this.fb.group({
       autocomplete: [],
     });
     this.initDataLoading();
   }
 
-  ngAfterContentChecked() {
+  ngAfterContentChecked(): void {
     this.cdref.detectChanges();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
@@ -80,7 +80,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
           this.isLoadingResults = of(false);
         }
       }
-    }, err => {
+    }, () => {
       this.isLoadingResults = of(false);
     });
   }

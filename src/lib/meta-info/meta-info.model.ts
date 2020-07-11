@@ -49,6 +49,7 @@ export class GenericFieldInfo {
   readonly?: boolean;
   formatOption?: GenericControlFormatOption;
   lookup?: Lookup;
+  parentKeyName?: string;
 }
 
 export class ListFilter {

@@ -1,3 +1,4 @@
+import { ControlType } from './../../meta-info/meta-info.model';
 import {
   Component, OnInit, Inject, OnDestroy, ChangeDetectorRef, AfterContentChecked, ViewChildren,
   QueryList, ViewChild, AfterViewInit, Output, EventEmitter
@@ -10,7 +11,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { CrudFieldsComponent } from '../crud-fields/crud-fields.component';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
-import { GenericFieldInfo, MetaInfo, MetaInfoTag, ControlType, _MetaInfoTag } from '../../meta-info/meta-info.model';
+import { GenericFieldInfo, MetaInfo, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoService } from '../../services/meta-info.service';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
@@ -175,7 +176,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     let modelData = {};
     if (form.valid) {
       const formData = this.retrieveFormData();
-      modelData = this.retrieveDataFromControls(formData, this.crudFormParameter.data);
+      modelData = this.mapModelData(formData, this.crudFormParameter.data, this.crudFormParameter.parentData);
       this.preparePrimaryKeyInFormData(modelData);
     }
     return modelData;
@@ -197,7 +198,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  private retrieveDataFromControls(formData: any, originData: any[]): any {
+  private mapModelData(formData: any, originData: any[], parentData: any[]): any {
     if (!this.updateFields || !this.crudFieldsComponents) {
       return null;
     }
@@ -223,7 +224,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           saveData[field.name] = this.metaInfoService.getLookupObjectArray(field, fieldValue, fieldValue);
           break;
         case ControlType.referenceByParentData:
-          saveData[field.name] = this.crudFormParameter.parentData[field.name];
+          saveData[field.name] = parentData[field?.parentKeyName || field.name];
           break;
         case ControlType.referenceByExtraData:
           saveData[field.name] = this.metaInfoExtraDataService.getExtraData(field.name);

@@ -18,32 +18,18 @@
     </mat-card-content>
   </mat-card>
 </div> -->
-<mat-card style="display:flex">
-  <!-- <mat-card-header>
-    <h3>Title</h3>
-  </mat-card-header> -->
+<div class="loading-shade" *ngIf="isLoadingResults | async">
+  <mat-spinner></mat-spinner>
+</div>
+<mat-card>
   <ngx-crud-table-header [formGroup]="form" [title]="'Base Data'" [subtitle]="'Table of ' + metaInfo?.title"
     (applyFilter)="applyFilter($event)">
   </ngx-crud-table-header>
-  <mat-card-content fxLayout="column" fxLayoutAlign="start stretch" style="overflow:hidden">
-    <!--
-    <div style="width: 100px; margin: 0 100px; overflow: auto">
-      Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-      dolore
-      magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd
-      gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur
-      sadipscing
-      elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At
-      vero eos et
-      accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum
-      dolor sit
-      amet.
-    </div> -->
+  <mat-card-content fxLayout="column" fxLayoutAlign="center center">
     <ngx-crud-table [listData]="listData" [paginator]="paginator" [filter]="filter"
-      style="margin: 0 100px; overflow: auto" [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
+      [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
       (refreshTableData)="onRefreshTableData($event)">
     </ngx-crud-table>
     <mat-paginator [pageSize]="pageLimit[0]" [pageSizeOptions]="pageLimit" showFirstLastButtons></mat-paginator>
   </mat-card-content>
-
 </mat-card>

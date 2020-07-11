@@ -25,3 +25,8 @@ export enum CrudAction {
   Insert = 'Insert',
   Delete = 'Delete'
 }
+
+export enum ScrollMode {
+  Table,
+  Page
+}
