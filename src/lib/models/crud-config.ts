@@ -7,7 +7,7 @@ import { ScrollMode } from './crud.model';
 }) export class CrudConfig {
   public metaInfoDefinitions: Map<MetaInfoTag, MetaInfo>;
   public baseUrl: string;
-  public scrollMode: ScrollMode;
+  public scrollModeBaseDataTable: ScrollMode;
 
   constructor() {
   }

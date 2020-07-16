@@ -1,4 +1,4 @@
-import { NgModule, APP_INITIALIZER, ModuleWithProviders } from '@angular/core';
+import { NgModule, ModuleWithProviders } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -37,7 +37,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
 import { PersistenceModule } from 'angular-persistence';
 import { MetaInfoBaseService } from './services/meta-info-base.service';
-import { MetaInfoExtraDataService } from './services/meta-info-extra-data.service';
 import { CrudService } from './services/crud.service';
 import { AngularGlobalizeModule } from '@code-art/angular-globalize';
 import { CommonModule } from '@angular/common';
@@ -103,7 +102,6 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   ],
   providers: [
     MetaInfoBaseService,
-    MetaInfoExtraDataService,
     CrudService,
     CrudConfig,
     CrudLocalizeService,
@@ -123,7 +121,7 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   entryComponents: [],
 })
 export class NgxCrudMetaFormModule {
-  public static forRoot(config: CrudConfig): ModuleWithProviders {
+  public static forRoot(config: CrudConfig): ModuleWithProviders<NgxCrudMetaFormModule> {
     return {
       ngModule: NgxCrudMetaFormModule,
       providers: [{

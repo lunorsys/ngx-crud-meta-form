@@ -1,3 +1,4 @@
+import { ScrollMode } from './../../models/crud.model';
 import { Component, OnInit, OnDestroy, ViewChild, AfterContentChecked, ChangeDetectorRef, HostBinding } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { ActivatedRoute } from '@angular/router';
@@ -9,8 +10,8 @@ import { CrudTableHeaderComponent } from '../crud-table-header/crud-table-header
 import { MetaInfo, GenericFieldInfo, ControlType, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoService } from '../../services/meta-info.service';
-import { MetaInfoExtraDataService } from '../../services/meta-info-extra-data.service';
 import { CrudTableResult } from '../../models/crud.model';
+import { CrudConfig } from '../../models/crud-config';
 
 @Component({
   selector: 'ngx-base-data-table',
@@ -22,14 +23,14 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(CrudTableHeaderComponent) tableHeader: CrudTableHeaderComponent;
-  @HostBinding('class.scroll-mode-table') enabled = true;
+  @HostBinding('class.scroll-mode-table') scrollModeTableEnabled = false;
+  @HostBinding('class.scroll-mode-content') scrollModeContentEnabled = false;
 
   public metaInfo: MetaInfo;
   public pageLimit = [100, 200, 500];
   public listData = [];
   public isLoadingResults: Observable<boolean>;
   public filter: string;
-  public fieldFilter: GenericFieldInfo;
   public form: FormGroup;
   public autocompleteList = new Observable<any[]>();
   public ControlType = ControlType;
@@ -42,8 +43,10 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     private metaInfoService: MetaInfoService,
     private fb: FormBuilder,
     private cdref: ChangeDetectorRef,
-    private metaInfoExtraDataService: MetaInfoExtraDataService) {
+    private crudConfig: CrudConfig) {
     this.metaInfoSelector = _MetaInfoTag.Undefined;
+    this.scrollModeTableEnabled = this.crudConfig?.scrollModeBaseDataTable === ScrollMode.Table || false;
+    this.scrollModeContentEnabled = this.crudConfig?.scrollModeBaseDataTable === ScrollMode.Content || false;
   }
 
   ngOnInit(): void {
@@ -62,7 +65,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     this.ngUnsubscribe.complete();
   }
 
-  private initDataLoading() {
+  private initDataLoading(): void {
     this.route.url.pipe(takeUntil(this.ngUnsubscribe)).subscribe(urlParts => {
       if (this.tableHeader) {
         this.tableHeader.clearFilterValue();
@@ -85,7 +88,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     });
   }
 
-  private prepareListData(metaInfoSelector: MetaInfoTag) {
+  private prepareListData(metaInfoSelector: MetaInfoTag): void {
     this.isLoadingResults = of(true);
     this.listData = [];
     this.crudService.getTable(metaInfoSelector).pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
@@ -97,38 +100,19 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     });
   }
 
-  public applyFilter(filterValue: string) {
+  public applyFilter(filterValue: string): void {
     this.filter = filterValue;
-  }
-
-  public displayLookupInputValue(item: any) {
-    return this.displayLookupListValue(this.fieldFilter, item);
   }
 
   public displayLookupListValue(field: GenericFieldInfo, item: any): string {
     return (item && field?.lookup?.getLookupValue(item)) || '';
   }
 
-  public hasFilterValue() {
-    return this.form.get('autocomplete').value;
-  }
-
-  public clearFilterValue(field: GenericFieldInfo) {
-    if (this.fieldFilter.name) {
-      this.metaInfoExtraDataService.setExtraData(this.fieldFilter.name, '');
-      this.form.get('autocomplete').setValue('');
-    }
-  }
-
-  public onRefreshTableData(tableData: CrudTableResult) {
+  public onRefreshTableData(tableData: CrudTableResult): void {
     this.prepareListData(this.metaInfoSelector);
   }
 
-  public getReadonly() {
-    return this.fieldFilter && this.fieldFilter.name && !this.metaInfoExtraDataService.getExtraData(this.fieldFilter.name);
-  }
-
-  public getListData() {
+  public getListData(): any[] {
     return this.listData;
   }
 }

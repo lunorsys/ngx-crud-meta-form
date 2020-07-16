@@ -1,4 +1,4 @@
-import { Injectable, Inject, Optional } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { tap, mergeMap, map } from 'rxjs/operators';
@@ -37,9 +37,10 @@ export class CrudService {
     );
   }
 
-  public get(metaInfoSelector: MetaInfoTag, data: any): Observable<any> {
+  public get(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
     const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
     if (!metaInfo) {
+      console.error(`Crud: No primary key name found for '${metaInfoSelector}'`);
       return of(null);
     } else {
       const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
@@ -48,15 +49,16 @@ export class CrudService {
         return of(null);
       }
       const primaryKey = data[primaryKeyName];
-      if (!primaryKey) {
-        console.error(`Crud: No valid primary key found for '${metaInfoSelector}'`);
-        return of(null);
-      }
+      // if (!primaryKey) {
+      //   // console.error(`Crud: No valid primary key found for '${metaInfoSelector}'`);
+      //   return of(null);
+      // }
 
-      if (metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel === CacheSupportLevel.Complete) {
+      if (primaryKey && metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel === CacheSupportLevel.Complete) {
         return of(this.cacheService.getCachedObject(metaInfoSelector, primaryKey));
       } else {
-        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, data);
+        const parentPrimaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(parentMetaInfoSelector, parentData);
+        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
         if (!restPath) {
           console.error(`Crud: No valid rest path key found for '${metaInfoSelector}'`);
           return of(null);
@@ -67,15 +69,9 @@ export class CrudService {
     }
   }
 
-  public save(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any): Observable<any> {
+  public save(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
     const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
     if (!metaInfo) {
-      return of(null);
-    }
-
-    let restPath = this.metaInfoBaseService.extractRestPath(metaInfo, data);
-    if (!restPath) {
-      console.error(`Crud: No restPath found for '${metaInfoSelector}'`);
       return of(null);
     }
 
@@ -85,13 +81,23 @@ export class CrudService {
       return of(null);
     }
 
-    const isCreate = data[primaryKeyName] === null;
-    if (!isCreate) {
-      restPath = `${restPath}/${data[primaryKeyName]}`;
+    const parentPrimaryKeyValue = parentMetaInfoSelector && this.metaInfoBaseService.getPrimaryKeyValue(parentMetaInfoSelector, parentData);
+    const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
+    if (!restPath) {
+      console.error(`Crud: No restPath found for '${metaInfoSelector}'`);
+      return of(null);
     }
 
-    const url = `${this.baseUrl}/${restPath}`;
-    const request$ = isCreate ? this.http.post<any>(url, data) : this.http.put<any>(url, data);
+    let url = '';
+    let request$ = null;
+    if (data[primaryKeyName]) {
+      url = `${this.baseUrl}/${restPath}/${data[primaryKeyName]}`;
+      request$ = this.http.put<any>(url, data);
+    } else {
+      url = `${this.baseUrl}/${restPath}`;
+      request$ = this.http.post<any>(url, data);
+    }
+
     return request$.pipe(
       mergeMap((postResult) => {
         if (metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel !== CacheSupportLevel.None) {
@@ -108,26 +114,25 @@ export class CrudService {
     );
   }
 
-  public delete(metaInfoSelector: MetaInfoTag, data: any): Observable<any> {
+  public delete(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
     const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
     if (!metaInfo) {
       return of(null);
     }
 
-    const restPath = metaInfo.restPath && this.metaInfoBaseService.extractRestPath(metaInfo, data);
-
-    const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
-    if (!primaryKeyName) {
-      console.error(`Crud: No primaryKeyName found for '${metaInfoSelector}'`);
-      return of(null);
+    let parentPrimaryKeyValue = null;
+    if (parentMetaInfoSelector) {
+      const parentMetaInfo = this.metaInfoBaseService.getMetaInfoInstance(parentMetaInfoSelector);
+      parentPrimaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(parentMetaInfoSelector, parentData);
     }
-
+    const primaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(metaInfoSelector, data);
+    const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
     if (restPath) {
-      const url = `${this.baseUrl}/${restPath}/${data[primaryKeyName]}`;
+      const url = `${this.baseUrl}/${restPath}/${primaryKeyValue}`;
       return this.http.delete(url).pipe(
         mergeMap((postResult) => {
           if (metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel !== CacheSupportLevel.None) {
-            this.cacheService.deleteCachedObject(metaInfoSelector, data[primaryKeyName]);
+            this.cacheService.deleteCachedObject(metaInfoSelector, primaryKeyValue);
           }
           if (metaInfo.connectedCacheTables) {
             return this.cacheService.refreshConnectedTables(metaInfo.connectedCacheTables).pipe(
@@ -139,7 +144,7 @@ export class CrudService {
         }));
     } else {
       if (metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel !== CacheSupportLevel.None) {
-        this.cacheService.deleteCachedObject(metaInfoSelector, data[primaryKeyName]);
+        this.cacheService.deleteCachedObject(metaInfoSelector, primaryKeyValue);
       }
       if (metaInfo.connectedCacheTables) {
         return this.cacheService.refreshConnectedTables(metaInfo.connectedCacheTables);

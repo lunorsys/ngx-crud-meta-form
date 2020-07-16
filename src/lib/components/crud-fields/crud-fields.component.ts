@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, Input, OnDestroy, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Inject, Input, OnDestroy, ViewChild, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
@@ -15,7 +15,8 @@ import { MetaInfoService } from '../../services/meta-info.service';
 @Component({
   selector: 'ngx-crud-fields',
   templateUrl: './crud-fields.component.html',
-  styleUrls: ['./crud-fields.component.scss']
+  styleUrls: ['./crud-fields.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrudFieldsComponent implements OnInit, OnDestroy {
 
@@ -84,13 +85,13 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
 
   public getTableData(field: GenericFieldInfo): BehaviorSubject<any[]> {
     const metaInfoSelector = field && field.lookup && field.lookup.metaInfoSelector || '';
-    return this.lookupListDataMap.get(metaInfoSelector) || new BehaviorSubject([]);
+    return this.lookupListDataMap.get(metaInfoSelector);
   }
 
   public displayLookupLine(item: any[]): string {
     const field = this.field;
     if (!field?.lookup?.getLookupValue) {
-      return '';
+      return null;
     } else {
       let displayLine: string;
       if (!field.required) {

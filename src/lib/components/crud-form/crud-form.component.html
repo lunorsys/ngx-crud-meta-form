@@ -64,7 +64,7 @@
     <button mat-raised-button mat-dialog-close tabindex="-1" (click)="closeForm()">Cancel</button>
     <button *ngIf="showApplyButton()" [disabled]="isApplyButtonDisabled()" mat-raised-button (click)="applyForm()"
       color="primary">Apply</button>
-    <button [disabled]="isSaveButtonDisabled || tabIndex > 0" mat-raised-button (click)="saveForm()"
+    <button [disabled]="isSaveButtonDisabled() || tabIndex > 0" mat-raised-button (click)="saveForm()"
       color="primary">Ok</button>
   </mat-dialog-actions>
 </div>

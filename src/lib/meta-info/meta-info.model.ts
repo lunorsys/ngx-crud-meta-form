@@ -18,7 +18,6 @@ export enum ControlType {
   checkListObject = 'checkListObject',
   table = 'table',
   tableMasterDetail = 'tableMasterDetail',
-  referenceByExtraData = 'referenceByExtraData',
   referenceByParentData = 'referenceByParentData',
   placeHolder = 'placeHolder'
 }
@@ -34,6 +33,7 @@ export class GenericControlFormatOption {
 
 export class GenericFieldInfo {
   name: string;
+  parentKeyName?: string;
   type: ControlType;
   label?: string;
   isTableColumn?: boolean;
@@ -49,18 +49,11 @@ export class GenericFieldInfo {
   readonly?: boolean;
   formatOption?: GenericControlFormatOption;
   lookup?: Lookup;
-  parentKeyName?: string;
-}
-
-export class ListFilter {
-  id: number;
-  name: string;
 }
 
 export class Lookup {
   metaInfoSelector?: MetaInfoTag;
   getLookupValue?: (item: any) => string;
-  filter?: ListFilter;
 }
 
 export class FilterMetaInfo {

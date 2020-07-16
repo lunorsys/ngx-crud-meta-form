@@ -15,7 +15,6 @@ export * from './lib/interfaces/iwebsocket.service';
 
 export * from './lib/services/cache.service';
 export * from './lib/services/crud.service';
-export * from './lib/services/meta-info-extra-data.service';
 
 export * from './lib/components/base-data-table/base-data-table.component';
 export * from './lib/components/crud-fields/crud-fields.component';

@@ -28,5 +28,6 @@ export enum CrudAction {
 
 export enum ScrollMode {
   Table,
+  Content,
   Page
 }

@@ -31,6 +31,7 @@ ngx-crud-fields {
   flex-direction: column;
   overflow: hidden;
   mat-card.mat-focus-indicator {
+    margin: 5px 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -44,6 +45,13 @@ ngx-crud-fields {
         }
       }
     }
+  }
+}
+
+.scroll-mode-content {
+  overflow: auto;
+  mat-card.mat-focus-indicator {
+    margin: 5px 0;
   }
 }
 
@@ -75,7 +83,7 @@ ngx-base-data-table {
     }
 
     mat-header-cell.number-field > div {
-      margin-right: 5px;
+      margin-right: 0px;
       span {
         text-align: right;
       }

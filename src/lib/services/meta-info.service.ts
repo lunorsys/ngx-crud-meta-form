@@ -44,14 +44,14 @@ export class MetaInfoService implements OnDestroy {
     return fields.filter(field => this.showFormField(field));
   }
 
-  public getSelectData(field: GenericFieldInfo, data: any, value: any): BehaviorSubject<any[]> {
+  public getSelectData(field: GenericFieldInfo, parentData: any, value: any): BehaviorSubject<any[]> {
     const listData$ = new BehaviorSubject<any[]>([]);
 
     if (!field.lookup) {
       return listData$;
     }
 
-    const metaInfoSelector = field && field.lookup && field.lookup.metaInfoSelector;
+    const metaInfoSelector = field?.lookup?.metaInfoSelector;
     const defaultEntry = this.prepareDefaultEntry(field, metaInfoSelector, value);
     const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
     if (metaInfo) {
@@ -62,7 +62,9 @@ export class MetaInfoService implements OnDestroy {
         }
         listData$.next(listData);
       } else {
-        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, data);
+
+        const parentPrimaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(metaInfoSelector, parentData);
+        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
         const listDataResult$ = this.crudService.getTable(metaInfoSelector, restPath);
         listDataResult$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData: any[]) => {
           if (defaultEntry) {
@@ -75,7 +77,7 @@ export class MetaInfoService implements OnDestroy {
     return listData$;
   }
 
-  public getCheckListData(field: GenericFieldInfo, data: any): BehaviorSubject<any[]> {
+  public getCheckListData(field: GenericFieldInfo, parentData: any): BehaviorSubject<any[]> {
     const listData$ = new BehaviorSubject<any[]>([]);
 
     if (!field.lookup) {
@@ -89,7 +91,8 @@ export class MetaInfoService implements OnDestroy {
         const listData = this.cacheService.getCachedTable(metaInfoSelector);
         listData$.next(listData);
       } else {
-        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, data);
+        const parentPrimaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(metaInfoSelector, parentData);
+        const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
         const listDataResult$ = this.crudService.getTable(metaInfoSelector, restPath);
         listDataResult$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData: any[]) => {
           listData$.next(listData);
@@ -116,7 +119,7 @@ export class MetaInfoService implements OnDestroy {
     return defaultEntry;
   }
 
-  public getJoinedTableData(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any): BehaviorSubject<any[]> {
+  public getJoinedTableData(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, parentData: any): BehaviorSubject<any[]> {
     const listData$ = new BehaviorSubject<any[]>([]);
 
     const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
@@ -124,7 +127,7 @@ export class MetaInfoService implements OnDestroy {
 
     const parentPrimaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(parentMetaInfo.fields);
     if (parentPrimaryKeyName) {
-      const parentPrimaryKey = data[parentPrimaryKeyName];
+      const parentPrimaryKey = parentData[parentPrimaryKeyName];
       if (parentMetaInfo && metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel !== CacheSupportLevel.None) {
         if (parentPrimaryKey) {
           const listData = this.cacheService.getTableMasterDetail(metaInfoSelector,
@@ -136,7 +139,8 @@ export class MetaInfoService implements OnDestroy {
         }
       } else {
         if (parentPrimaryKey) {
-          const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, data);
+          const parentPrimaryKeyValue = this.metaInfoBaseService.getPrimaryKeyValue(metaInfoSelector, parentData);
+          const restPath = this.metaInfoBaseService.extractRestPath(metaInfo, parentPrimaryKeyValue);
           const listDataResult$ = this.crudService.getTable(metaInfoSelector, restPath);
           listDataResult$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData: any[]) => {
             listData$.next(listData);
@@ -154,15 +158,13 @@ export class MetaInfoService implements OnDestroy {
   public setLookupValue(field: GenericFieldInfo, listData: any[], value: any, control: FormControl): void {
 
     const metaInfo = this.getMetaInfoInstance(field.lookup.metaInfoSelector);
-    if (metaInfo && metaInfo.fields) {
+    if (metaInfo?.fields) {
       const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
       if (primaryKeyName) {
-        const selectedItem = listData ? listData.find((item: any) => {
+        const selectedItem = listData?.find((item: any) => {
           return item[primaryKeyName] === value;
-        }) : {};
-        if (selectedItem) {
-          control.setValue(selectedItem);
-        }
+        });
+        control.setValue(selectedItem);
       }
     }
   }
@@ -271,13 +273,14 @@ export class MetaInfoService implements OnDestroy {
     }
 
     return !!selectedIds.find(selected => item[keyLookupFieldName] === selected[keyLookupFieldName]);
+    // for test:
     // const ids = selectedIds.map(id => id[keyLookupFieldName]);
     // console.log(`is selected: ${result} data: ${ids.join()} selected item: ${item[keyLookupFieldName]}`);
   }
 
   public getFieldValue(data: any, field: GenericFieldInfo): number | string | number[] {
     if (!data) {
-      return '';
+      return null;
     }
     const value = data[field.name];
     if (value === null || value === undefined || (field.type === ControlType.number && isNaN(value))) {

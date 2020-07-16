@@ -1,7 +1,7 @@
 import { ControlType } from './../../meta-info/meta-info.model';
 import {
   Component, OnInit, Inject, OnDestroy, ChangeDetectorRef, AfterContentChecked, ViewChildren,
-  QueryList, ViewChild, AfterViewInit, Output, EventEmitter
+  QueryList, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectionStrategy
 } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
@@ -16,8 +16,6 @@ import { CrudService } from '../../services/crud.service';
 import { MetaInfoService } from '../../services/meta-info.service';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
-import { MetaInfoExtraDataService } from '../../services/meta-info-extra-data.service';
-//
 
 export class CrudFormResult {
   data: any[];
@@ -26,7 +24,8 @@ export class CrudFormResult {
 @Component({
   selector: 'ngx-crud-form',
   templateUrl: './crud-form.component.html',
-  styleUrls: ['./crud-form.component.scss']
+  styleUrls: ['./crud-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked, OnDestroy, AfterViewInit {
 
@@ -40,7 +39,6 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   public metaInfo: MetaInfo;
   public metaInfoSelector: MetaInfoTag;
   public lookupListDataMap = new Map<MetaInfoTag, BehaviorSubject<any[]>>();
-  public isSaveButtonDisabled = true;
   public tabIndex = 0;
 
   private primaryKeyName: string;
@@ -62,10 +60,10 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     private metaInfoService: MetaInfoService,
     private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
-    private metaInfoExtraDataService: MetaInfoExtraDataService) {
+    private changeDetection: ChangeDetectorRef) {
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.numberParser = Globalize.numberParser();
     this.metaInfo = this.metaInfoService.getMetaInfoInstance(this.crudFormParameter.metaInfoSelector);
     this.updateFields = this.metaInfoService.getUpdateFields(this.metaInfo.fields);
@@ -73,19 +71,18 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     this.primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(this.metaInfo.fields);
 
     this.prepareForm();
-    this.isSaveButtonDisabled = this.getIsSaveButtonDisabled();
   }
 
-  ngAfterContentChecked() {
+  ngAfterContentChecked(): void {
     this.cdref.detectChanges();
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.oldModelData = this.retrieveModelData();
     this.dataready = true;
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
@@ -118,24 +115,26 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       if (this.crudFormParameter.isFormLevel && !(metaInfo && metaInfo.restPath)) {
         this.close(saveData);
       } else {
-        this.save(this.crudFormParameter.parentMetaInfoselector, saveData).pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-          this.close(saveData);
-        }, error => {
-          const parameter: SnackBarParameter = {
-            message: `Error while update: ${error} `,
-            type: SnackBarType.warn
-          };
-
-          this.snackBarService.openSnackbar(parameter);
-        });
+        this.save(this.crudFormParameter.parentMetaInfoselector, saveData, this.crudFormParameter.parentData)
+          .pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+            this.changeDetection.markForCheck();
+            this.close(saveData);
+          }, error => {
+            const parameter: SnackBarParameter = {
+              message: `Error while update: ${error} `,
+              type: SnackBarType.warn
+            };
+            this.snackBarService.openSnackbar(parameter);
+            this.changeDetection.markForCheck();
+          });
       }
     } else {
       this.close(null);
     }
   }
 
-  public save(parentMetaInfoSelector: MetaInfoTag, data: any): Observable<any> {
-    return this.crudService.save(parentMetaInfoSelector, this.crudFormParameter.metaInfoSelector, data);
+  public save(parentMetaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
+    return this.crudService.save(parentMetaInfoSelector, this.crudFormParameter.metaInfoSelector, data, parentData);
   }
 
   public applyForm(): void {
@@ -143,12 +142,12 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     this.crudFormParameter.data = modelData;
 
     if (modelData) {
-      const parentMetaInfoselector = this.crudFormParameter && this.crudFormParameter.parentMetaInfoselector;
-      this.save(parentMetaInfoselector, modelData)
+      const parentMetaInfoselector = this?.crudFormParameter?.parentMetaInfoselector;
+      this.save(parentMetaInfoselector, modelData, this.crudFormParameter.parentData)
         .pipe(takeUntil(this.ngUnsubscribe)).subscribe((responseData: any) => {
-          if (responseData && this.crudFormParameter && this.crudFormParameter.data) {
+          if (responseData && this?.crudFormParameter.data) {
             const isUpdate = modelData[this.primaryKeyName];
-            this.crudFormParameter.data[this.primaryKeyName] = responseData[this.primaryKeyName] || null;
+            this.crudFormParameter.data[this.primaryKeyName] = responseData?.[this.primaryKeyName] || null;
             this.applyModelData = this.crudFormParameter.data;
             this.oldModelData = this.crudFormParameter.data;
 
@@ -159,6 +158,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
             };
 
             this.snackBarService.openSnackbar(parameter);
+            this.changeDetection.markForCheck();
           }
         }, error => {
           const parameter: SnackBarParameter = {
@@ -167,6 +167,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           };
 
           this.snackBarService.openSnackbar(parameter);
+          this.changeDetection.markForCheck();
         });
     }
   }
@@ -182,9 +183,9 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     return modelData;
   }
 
-  private retrieveFormData() {
+  private retrieveFormData(): FormGroup {
     const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
-    return form && form.getRawValue();
+    return form?.getRawValue();
   }
 
   private preparePrimaryKeyInFormData(formData: any): void {
@@ -225,9 +226,6 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           break;
         case ControlType.referenceByParentData:
           saveData[field.name] = parentData[field?.parentKeyName || field.name];
-          break;
-        case ControlType.referenceByExtraData:
-          saveData[field.name] = this.metaInfoExtraDataService.getExtraData(field.name);
           break;
         case ControlType.checkList:
           this.crudFieldsComponents.forEach((crudfield) => {
@@ -294,7 +292,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  private getIsSaveButtonDisabled(): boolean {
+  public isSaveButtonDisabled(): boolean {
     const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
     const isDisabled = !this.metaInfo.fields.some((field) => {
       const isEnabled = this.isEnabled(field);
@@ -302,6 +300,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       const fieldWriteable = !field?.readonly && isEnabled && !field.isPrimaryKey && editAllowed;
       return fieldWriteable;
     });
+    console.log('\'isSaveButtonDisabled\' was called');
     return this.tabIndex > 0 || form.invalid || isDisabled;
   }
 
@@ -323,7 +322,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public getFlexParameter(field: GenericFieldInfo): string {
-    return field.formatOption && field.formatOption.formFlexParameter ? field.formatOption.formFlexParameter : '1 1 100%';
+    return field.formatOption?.formFlexParameter ?? '1 1 100%';
   }
 
   public isEnabled(field: GenericFieldInfo): boolean {
@@ -350,7 +349,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     return this.lookupListDataMap.get(pageSelector);
   }
 
-  public getPrimaryKey(index: number) {
+  public getPrimaryKey(index: number): GenericFieldInfo {
     const pageSelector = this.getMetaInfoSelector(index);
     const pageMetaInfo = this.metaInfoBaseService.getMetaInfoInstance(pageSelector);
     return pageMetaInfo.fields.find(field => field.isPrimaryKey);
@@ -371,7 +370,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       !this.metaInfoService.isEqualModel(this.metaInfo, this.oldModelData, this.retrieveModelData());
   }
 
-  private selectNewTabPage(index: number) {
+  private selectNewTabPage(index: number): void {
     const pageSelector = this.getMetaInfoSelector(index);
     if (!this.lookupListDataMap.get(pageSelector)) {
       const detailData$ = this.metaInfoService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
@@ -379,11 +378,11 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  public getForm(pageIndex: number) {
+  public getForm(pageIndex: number): FormGroup {
     return this.formMap.get(this.getMetaInfoSelector(pageIndex));
   }
 
-  public onRefreshTableData(crudTableResult: CrudTableResult) {
+  public onRefreshTableData(crudTableResult: CrudTableResult): void {
     this.crudFormParameter.data[crudTableResult.field.name] = crudTableResult.data;
     if (this.tabIndex > 0) {
       const pageSelector = this.getMetaInfoSelector(this.tabIndex);
@@ -399,7 +398,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  private updateControls(modelData: any) {
+  private updateControls(modelData: any): void {
     this.crudFieldsComponents.forEach(crudField => {
       crudField.updateControl(modelData);
     });

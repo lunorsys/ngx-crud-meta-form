@@ -18,7 +18,6 @@ import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { MetaInfoService } from '../../services/meta-info.service';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
-import { MetaInfoExtraDataService } from '../../services/meta-info-extra-data.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
 import { CrudFormComponent, CrudFormResult } from '../crud-form/crud-form.component';
 import { CACHE_TOKEN, ICacheService } from '../../interfaces/icache.service';
@@ -112,8 +111,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     private cdref: ChangeDetectorRef,
     private metaInfoService: MetaInfoService,
     private metaInfoBaseService: MetaInfoBaseService,
-    private snackBarService: SnackBarService,
-    private extraDataService: MetaInfoExtraDataService) {
+    private snackBarService: SnackBarService) {
 
     this.metaTableInfo = new MetaInfo();
     this.metaInfo = new MetaInfo();
@@ -233,52 +231,45 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   }
 
   public updateEntry(data: any): void {
-    this.editEntry(data);
+    this.editEntry(data, this.parentData);
   }
 
   public createEntry(): void {
-    const data = {};
-    this.metaInfo.fields?.forEach((field) => {
-      if (field.type === ControlType.referenceByParentData) {
-        const parentKeyName = field?.parentKeyName || field.name;
-        data[field.name] = this.parentData?.[parentKeyName];
-      }
-    });
-    this.editEntry(data);
+    this.editEntry(null, this.parentData);
   }
 
-  public editEntry(data: any): void {
-    if (this.metaInfo.restPath) {
-      const restPath = this.metaInfoBaseService.extractRestPath(this.metaInfo, data);
-      const primaryKey = this.metaInfoBaseService.getPrimaryKeyName(this.metaInfo.fields);
-      if (restPath && primaryKey && data[primaryKey]) {
-        this.crudService.get(this.metaInfoSelector, data).pipe(takeUntil(this.ngUnsubscribe)).subscribe((childData) => {
+  private editEntry(data: any, parentData: any): void {
+    if (!this.metaInfo.restPath) {
+      console.error(`Crud: missing rest path in '${this.metaInfoSelector}'`);
+      return;
+    }
+
+    if (data) {
+      this.crudService.get(this.parentMetaInfoselector, this.metaInfoSelector, data, parentData)
+        .pipe(takeUntil(this.ngUnsubscribe)).subscribe((childData) => {
           const dialogRef = this.openCrudForm(childData);
           this.afterCloseCrudForm(dialogRef, data);
         }, err => {
           console.log('error: ' + err);
         });
-      } else {
-        const dialogRef = this.openCrudForm(data);
-        this.afterCloseCrudForm(dialogRef, data);
-      }
     } else {
-      const dialogRef = this.openCrudForm(data || {});
-      this.afterCloseCrudForm(dialogRef, data);
+      const dialogRef = this.openCrudForm(null);
+      this.afterCloseCrudForm(dialogRef, null);
     }
   }
 
   public deleteEntry(data: any): void {
-    this.crudService.delete(this.metaInfoSelector, data).pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-      this.updateAfterDelete(data);
-    }, error => {
-      const parameter: SnackBarParameter = {
-        message: `Error while delete: ${error} `,
-        type: SnackBarType.warn
-      };
+    this.crudService.delete(this.parentMetaInfoselector, this.metaInfoSelector, data, this.parentData)
+      .pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
+        this.updateAfterDelete(data);
+      }, error => {
+        const parameter: SnackBarParameter = {
+          message: `Error while delete: ${error} `,
+          type: SnackBarType.warn
+        };
 
-      this.snackBarService.openSnackbar(parameter);
-    });
+        this.snackBarService.openSnackbar(parameter);
+      });
   }
 
   private updateAfterDelete(data: any): any[] {
@@ -345,21 +336,16 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     if (this.isReadonly || !this?.metaInfo?.fields) {
       return false;
     }
-    const missingApplyData = this.metaInfo.fields.some((field) => {
+    const isAddButtonDisabled = this.metaInfo.fields.some((field) => {
       let isDisabled = false;
-      switch (field.type) {
-        case ControlType.referenceByParentData:
-          const parentKeyName = field?.parentKeyName || field.name;
-          isDisabled = !this.parentData?.[parentKeyName];
-          break;
-        case ControlType.referenceByExtraData:
-          isDisabled = field.required && !this.extraDataService.getExtraData(field.name);
-          break;
+      if (field.type === ControlType.referenceByParentData) {
+        const parentKeyName = field.parentKeyName || field.name;
+        isDisabled = !this.parentData?.[parentKeyName];
       }
       return isDisabled;
     });
 
-    return missingApplyData;
+    return !!isAddButtonDisabled;
   }
 
   public isDeleteButtonEnabled(): boolean {
@@ -395,12 +381,12 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       const filterDestination: string[] = [];
 
       this.metaTableInfo.fields.forEach((field) => {
-        if (field.isTableColumn && (field.type === ControlType.string || field.type === ControlType.number)) {
+        if (field.isTableColumn && [ControlType.string, ControlType.number].includes(field.type)) {
           let fieldValue = data[field.name];
           if (field.type === ControlType.string) {
-            fieldValue = fieldValue && fieldValue.toLowerCase();
+            fieldValue = fieldValue?.toLowerCase();
           } else {
-            fieldValue = fieldValue && fieldValue.toString();
+            fieldValue = fieldValue?.toString();
           }
           if (fieldValue) {
             filterDestination.push(fieldValue);

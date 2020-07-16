@@ -1,23 +1,4 @@
 <ngx-crud-styles></ngx-crud-styles>
-<!-- <div class="ngx-base-data-table">
-  <div class="loading-shade" *ngIf="isLoadingResults | async">
-    <mat-spinner></mat-spinner>
-  </div>
-  <mat-card>
-    <mat-card-header fxLayout="row" fxLayoutAlign="space-between start">
-      <ngx-crud-table-header [formGroup]="form" fxFill [title]="'Base Data'" [subtitle]="'Table of ' + metaInfo?.title"
-        (applyFilter)="applyFilter($event)">
-      </ngx-crud-table-header>
-    </mat-card-header>
-    <mat-card-content fxLayout="column" fxLayoutAlign="start stretch" fxFill>
-      <ngx-crud-table [listData]="listData" [paginator]="paginator" [filter]="filter"
-        [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
-        (refreshTableData)="onRefreshTableData($event)">
-      </ngx-crud-table>
-      <mat-paginator [pageSize]="pageLimit[0]" [pageSizeOptions]="pageLimit" showFirstLastButtons></mat-paginator>
-    </mat-card-content>
-  </mat-card>
-</div> -->
 <div class="loading-shade" *ngIf="isLoadingResults | async">
   <mat-spinner></mat-spinner>
 </div>
@@ -27,8 +8,7 @@
   </ngx-crud-table-header>
   <mat-card-content fxLayout="column" fxLayoutAlign="center center">
     <ngx-crud-table [listData]="listData" [paginator]="paginator" [filter]="filter"
-      [metaInfoSelector]="metaInfoSelector" [isReadonly]="getReadonly()"
-      (refreshTableData)="onRefreshTableData($event)">
+      [metaInfoSelector]="metaInfoSelector" [isReadonly]="false" (refreshTableData)="onRefreshTableData($event)">
     </ngx-crud-table>
     <mat-paginator [pageSize]="pageLimit[0]" [pageSizeOptions]="pageLimit" showFirstLastButtons></mat-paginator>
   </mat-card-content>
