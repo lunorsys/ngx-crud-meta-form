@@ -1,0 +1,8 @@
+<mat-form-field fxLayout="row" fxLayoutAlign="start start">
+  <mat-label>{{field.label}}</mat-label>
+  <mat-select placeholder="{{field.label}}" [formControl]="control" [required]="field.required" multiple>
+    <mat-option *ngFor="let item of tableData$ | async" [value]="item">
+      {{displayLookupLine(item)}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>

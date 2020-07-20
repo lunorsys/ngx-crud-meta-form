@@ -1,5 +1,5 @@
 <ngx-crud-styles></ngx-crud-styles>
-<mat-table class="crud-table" #table matSort matSortDisableClear [dataSource]="dataSource" *ngIf="dataready | async">
+<mat-table class="crud-table" #table matSort matSortDisableClear [dataSource]="dataSource" *ngIf="dataready">
   <div class="loading-shade" *ngIf="isLoadingResults">
     <mat-spinner></mat-spinner>
   </div>

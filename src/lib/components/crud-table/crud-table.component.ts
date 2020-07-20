@@ -1,7 +1,8 @@
 import {
   Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter, ChangeDetectorRef,
-  AfterContentChecked,
   Inject,
+  AfterViewInit,
+  AfterContentChecked,
 } from '@angular/core';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatDialogRef, MatDialog, MatDialogConfig } from '@angular/material/dialog';
@@ -17,7 +18,6 @@ import { MetaInfo, MetaInfoTag, GenericFieldInfo, ControlType, _MetaInfoTag } fr
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { CrudObjectsService } from '../../services/crud-objects.service';
 import { CrudService } from '../../services/crud.service';
-import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
 import { CrudFormComponent, CrudFormResult } from '../crud-form/crud-form.component';
 import { CACHE_TOKEN, ICacheService } from '../../interfaces/icache.service';
@@ -28,13 +28,11 @@ import { MetaInfoService } from '../../services/meta-info.service';
   templateUrl: './crud-table.component.html',
   styleUrls: ['./crud-table.component.scss']
 })
-export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecked {
+export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecked { // AfterViewInit
 
-  @Input() paginator: MatPaginator;
-  @Input() isFormLevel = false;
-  @Input() sourceField: GenericFieldInfo;
-  @Input() parentData: any = {};
-  @Input() parentMetaInfoselector: MetaInfoTag = _MetaInfoTag.Undefined;
+  @Input() paginator: MatPaginator = null;
+  @Input() field: GenericFieldInfo;
+  @Input() parentMetaInfoSelector: MetaInfoTag = _MetaInfoTag.Undefined;
   @ViewChild(MatTable) table: MatTable<any>;
   @ViewChild(MatSort) sort: MatSort;
   @ViewChild(MatAutocomplete) autocomplete: MatAutocomplete;
@@ -49,6 +47,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     } else {
       this.dataSource.data = [];
     }
+    // this.changeDetection.markForCheck();
   }
   get listData(): any[] {
     return this._listData;
@@ -56,7 +55,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
 
   @Input() set metaInfoSelector(metaInfoSelector: MetaInfoTag) {
 
-    const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
+    const metaInfo = this.metaInfoService.getMetaInfoInstance(metaInfoSelector);
     this._metaInfoSelector = metaInfoSelector;
     if (metaInfo) {
       this.metaTableInfo = cloneDeep(metaInfo);
@@ -89,10 +88,19 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     return this._filter;
   }
 
+  @Input() set parentData(parentData: any) {
+    this._parentData = parentData;
+    // this.changeDetection.markForCheck();
+  }
+  get parentData() {
+    return this._parentData;
+  }
+
   public displayedColumns: string[];
   public isLoadingResults = true;
   public dataSource = new MatTableDataSource<any>();
-  public dataready: Observable<boolean> = of(false);
+  // public dataready: Observable<boolean> = of(false);
+  public dataready = false;
   public metaTableInfo: MetaInfo;
   public metaInfo: MetaInfo;
   ControlType = ControlType;
@@ -103,15 +111,15 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   private _isReadonly: boolean;
   private _metaInfoSelector: MetaInfoTag;
   private _filter: string;
+  private _parentData: any = {};
 
   private ngUnsubscribe = new Subject();
 
   constructor(private dialog: MatDialog,
     @Inject(CACHE_TOKEN) private cacheService: ICacheService,
     private crudService: CrudService,
-    private cdref: ChangeDetectorRef,
+    private changeDetection: ChangeDetectorRef,
     private crudObjectsService: CrudObjectsService,
-    private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
     private metaInfoService: MetaInfoService) {
 
@@ -129,14 +137,21 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
         this.setupSort();
         this.setupFilter();
         this.setupSortingDataAccessor();
-        this.dataready = of(true);
+        this.dataready = true;
       }
     });
   }
 
   ngAfterContentChecked(): void {
-    this.cdref.detectChanges();
+    this.changeDetection.detectChanges();
   }
+
+  // ngAfterViewInit(): void {
+  //   // this.changeDetection.detectChanges();
+  //   setTimeout(() => {
+  //     this.dataready = true;
+  //   });
+  // }
 
   ngOnDestroy(): void {
     this.dataSource.disconnect();
@@ -247,7 +262,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     }
 
     if (data) {
-      this.crudService.get(this.parentMetaInfoselector, this.metaInfoSelector, data, parentData)
+      this.crudService.get(this.parentMetaInfoSelector, this.metaInfoSelector, data, parentData)
         .pipe(takeUntil(this.ngUnsubscribe)).subscribe((childData) => {
           const dialogRef = this.openCrudForm(childData);
           this.afterCloseCrudForm(dialogRef, data);
@@ -261,26 +276,26 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   }
 
   public deleteEntry(data: any): void {
-    this.crudService.delete(this.parentMetaInfoselector, this.metaInfoSelector, data, this.parentData)
+    this.crudService.delete(this.parentMetaInfoSelector, this.metaInfoSelector, data, this.parentData)
       .pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
         this.updateAfterDelete(data);
       }, error => {
-        const parameter: SnackBarParameter = {
+        const dialogParameter: SnackBarParameter = {
           message: `Error while delete: ${error} `,
           type: SnackBarType.warn
         };
 
-        this.snackBarService.openSnackbar(parameter);
+        this.snackBarService.openSnackbar(dialogParameter);
       });
   }
 
   private updateAfterDelete(data: any): any[] {
     const filteredData = this.dataSource.data.filter((item) => data !== item);
     this.listData = filteredData;
-    if (this.sourceField) {
+    if (this.field) {
       this.refreshTableData.next({
         data: filteredData,
-        field: this.sourceField
+        field: this.field
       } as CrudTableResult);
     }
     return filteredData;
@@ -298,11 +313,12 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
         this.setupSort();
         this.refreshTableData.next({
           data: this.dataSource.data,
-          field: this.sourceField
+          field: this.field
         });
 
         this.isLoadingResults = true;
       }
+      // this.changeDetection.markForCheck();
     });
   }
 
@@ -311,9 +327,8 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       data: {
         data,
         metaInfoSelector: this.metaInfoSelector,
-        isFormLevel: this.isFormLevel,
         parentData: this.parentData,
-        parentMetaInfoselector: this.parentMetaInfoselector,
+        parentMetaInfoSelector: this.parentMetaInfoSelector,
       },
       disableClose: true,
       width: this.metaInfoService.getFormDialogWidth(this.metaInfo),

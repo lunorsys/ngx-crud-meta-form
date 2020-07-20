@@ -1,50 +1,51 @@
 <ngx-crud-styles></ngx-crud-styles>
-<ng-container [formGroup]="parentForm">
-  <mat-form-field *ngIf="field.type===ControlType.string || field.type===ControlType.number">
-    <mat-label>{{field.label}}</mat-label>
-    <input matInput type="text" placeholder="{{field.label}}" [formControl]="getFormControl(field)"
-      [required]="field.required">
-    <mat-error>{{'Please enter a valid entry for '+field.label}}</mat-error>
-  </mat-form-field>
+<ng-container [formGroup]="fieldForm" [ngSwitch]="field.type">
+  <ngx-crud-field-string #stringComponent *ngSwitchCase="ControlType.string" [fieldForm]="fieldForm" [field]="field"
+    [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-string>
 
-  <ng-container *ngIf="field.type === ControlType.boolean">
-    <div class="generic-checkbox">
-      <mat-checkbox [formControl]="getFormControl(field)">{{field.label}}</mat-checkbox>
-    </div>
-  </ng-container>
+  <ngx-crud-field-number #numberComponent *ngSwitchCase="ControlType.number" [fieldForm]="fieldForm" [field]="field"
+    [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-number>
 
-  <mat-form-field *ngIf="field.type === ControlType.select" fxLayout="row" fxFill fxLayoutAlign="start start">
-    <mat-label>{{field.label}}</mat-label>
-    <mat-select placeholder="{{field.label}}" [formControl]="getFormControl(field)" [required]="field.required">
-      <mat-option *ngFor="let item of getTableData(field) | async" [value]="item">
-        {{displayLookupLine(item)}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+  <ngx-crud-field-checkbox #checkboxComponent *ngSwitchCase="ControlType.boolean" [fieldForm]="fieldForm"
+    [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-checkbox>
 
-  <mat-form-field *ngIf="field.type === ControlType.selectMulti || field.type === ControlType.selectMultiObject ||
-    field.type === ControlType.selectMultiObjectJoin" fxLayout="row" fxLayoutAlign="start start">
-    <mat-label>{{field.label}}</mat-label>
-    <mat-select placeholder="{{field.label}}" [formControl]="getFormControl(field)" [required]="field.required"
-      multiple>
-      <mat-option *ngFor="let item of getTableData(field) | async" [value]="item">
-        {{displayLookupLine(item)}}
-      </mat-option>
-    </mat-select>
-  </mat-form-field>
+  <ngx-crud-field-select #selectComponent *ngSwitchCase="ControlType.select" [fieldForm]="fieldForm" [field]="field"
+    [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-select>
 
-  <div *ngIf="field.type === ControlType.checkList" fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
-    <h4>{{field.label}}</h4>
-    <mat-selection-list #selectionList class="selection-list" [formControl]="getFormControl(field)" role="listbox"
-      multiple="true">
-      <mat-list-option *ngFor="let item of getTableData(field) | async" [selected]="isSelected(item)" [value]="item">
-        {{displayLookupLine(item)}}
-      </mat-list-option>
-    </mat-selection-list>
-  </div>
+  <ngx-crud-field-select-multi #selectMultiComponent *ngSwitchCase="ControlType.selectMulti" [fieldForm]="fieldForm"
+    [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-select-multi>
 
-  <div *ngIf="field.type === ControlType.checkListObject || field.type === ControlType.checkListObjectJoin"
-    fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
+  <ngx-crud-field-select-multi-object #selectMultiComponent *ngSwitchCase="ControlType.selectMultiObject"
+    [fieldForm]="fieldForm" [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-select-multi-object>
+
+  <ngx-crud-field-checklist-object #checklistObjectComponent *ngSwitchCase="ControlType.checkListObject"
+    [fieldForm]="fieldForm" [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-checklist-object>
+
+  <ngx-crud-field-checklist #checklistComponent *ngSwitchCase="ControlType.checkList" [fieldForm]="fieldForm"
+    [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-checklist>
+
+  <ngx-crud-field-table-master-detail #tableMasterDetailComponent *ngSwitchCase="ControlType.tableMasterDetail"
+    [fieldForm]="fieldForm" [metaInfoSelector]="field?.lookup?.metaInfoSelector" [field]="field"
+    (refreshTableData)="this.onRefreshTableData($event)" [parentData]="dialogParameter.data"
+    [parentMetaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-table-master-detail>
+
+  <ngx-crud-field-table #tableComponent *ngSwitchCase="ControlType.table" [fieldForm]="fieldForm"
+    [metaInfoSelector]="field?.lookup?.metaInfoSelector" [field]="field"
+    (refreshTableData)="this.onRefreshTableData($event)" [parentData]="dialogParameter.data"
+    [parentMetaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-table>
+
+  <!--
+  <div *ngSwitchCase="field.type === ControlType.checkListObjectJoin" fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
     <h4>{{field.label}}</h4>
     <mat-selection-list #selectionList class="selection-list" [formControl]="getFormControl(field)">
       <mat-list-option *ngFor="let item of getTableData(field) | async" [selected]="isSelectedObject(item)"
@@ -52,20 +53,20 @@
         {{displayLookupLine(item)}}
       </mat-list-option>
     </mat-selection-list>
-  </div>
-
+  </div> -->
+  <!--
   <div fxLayout="column" fxFlex="1 1 100%"
-    *ngIf="field.type === ControlType.table || field.type === ControlType.tableJoin || field.type === ControlType.tableMasterDetail">
+    *ngSwitchCase="field.type === ControlType.table || field.type === ControlType.tableJoin || field.type === ControlType.tableMasterDetail">
     <h4>{{field.label}}</h4>
     <ngx-crud-table fxfill [listData]="getTableData(field) | async" [metaInfoSelector]="field?.lookup?.metaInfoSelector"
       [isFormLevel]="true" [sourceField]="field" (refreshTableData)="onRefreshTableData($event)"
-      [parentData]="parameter.data" [parentMetaInfoselector]="metaInfoSelector">
+      [parentData]="dialogParameter.data" [parentMetaInfoSelector]="metaInfoSelector">
     </ngx-crud-table>
-  </div>
-
-  <ng-container *ngIf="field.type === ControlType.placeHolder">
+  </div> -->
+  <!--
+  <ng-container *ngSwitchCase="field.type === ControlType.placeHolder">
     <mat-form-field class="hidden-input">
       <input matInput type="text" [formControl]="getFormControl(field)">
     </mat-form-field>
   </ng-container>
-</ng-container>
+</ng-container> -->

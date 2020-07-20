@@ -10,9 +10,8 @@ export class CrudFormParameter {
   metaInfoSelector: string | MetaInfoTag;
   editAllowedList?: string[];
   hideList?: string[];
-  isFormLevel?: boolean;
   parentData?: any;
-  parentMetaInfoselector?: MetaInfoTag;
+  parentMetaInfoSelector?: MetaInfoTag;
 }
 
 export class WebSocketCacheData {

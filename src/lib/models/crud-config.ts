@@ -1,4 +1,4 @@
-import { InjectionToken, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { MetaInfoTag, MetaInfo } from '../meta-info/meta-info.model';
 import { ScrollMode } from './crud.model';
 

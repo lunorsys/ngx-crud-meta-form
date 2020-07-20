@@ -46,7 +46,7 @@ export class GenericFieldInfo {
   isPreSortedItem?: boolean;
   error?: string;
   required?: boolean;
-  validator?: ValidatorFn;
+  validator?: ValidatorFn | ValidatorFn[];
   hint?: string;
   disabled?: boolean;
   readonly?: boolean;

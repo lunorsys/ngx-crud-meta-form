@@ -4,13 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, BehaviorSubject, Subject, throwError, of } from 'rxjs';
 import { share, takeUntil, catchError } from 'rxjs/operators';
 //
-import { MetaInfoBaseService } from './meta-info-base.service';
 import { MetaInfo, MetaInfoTag, CacheSupportLevel } from '../meta-info/meta-info.model';
 import { SnackBarParameter, SnackBarType, SnackBarService } from './snack-bar.service';
 // import { CrudAction, WebSocketCacheData } from '../models/crud.model';
 // import { IWebSocketService } from '../interfaces/iwebsocket.service';
 import { ICacheService } from '../interfaces/icache.service';
 import { CrudConfig } from '../models/crud-config';
+import { MetaInfoService } from './meta-info.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,7 @@ export class CacheService implements OnDestroy, ICacheService {
   private metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>;
 
   constructor(private http: HttpClient,
-    private metaInfoBaseService: MetaInfoBaseService,
+    private metaInfoService: MetaInfoService,
     private snackBarService: SnackBarService,
     private crudConfig: CrudConfig /*,
     @Inject(WEB_SOCKET_TOKEN) @Optional() private webSocketService: IWebSocketService */) {
@@ -82,7 +82,7 @@ export class CacheService implements OnDestroy, ICacheService {
     const cacheRestPathes = new Map<MetaInfoTag, string>();
     this.metaInfoDefinitions.forEach((metaInfo, key) => {
       if (metaInfo.cacheSupportLevel && metaInfo.cacheSupportLevel !== CacheSupportLevel.None && !this.cacheRestPathes.has(key)) {
-        const restPath = this.metaInfoBaseService.normalizeRestPath(metaInfo);
+        const restPath = this.metaInfoService.normalizeRestPath(metaInfo);
         cacheRestPathes.set(key, restPath);
       }
     });
@@ -145,11 +145,11 @@ export class CacheService implements OnDestroy, ICacheService {
       }
     }, (err) => {
       if (err && err.state !== 401) {
-        const parameter: SnackBarParameter = {
+        const dialogParameter: SnackBarParameter = {
           message: isInitializingCache ? 'Error occurs while starting application!' : 'Error occurs while updating cache!',
           type: SnackBarType.warn
         };
-        this.snackBarService.openSnackbar(parameter);
+        this.snackBarService.openSnackbar(dialogParameter);
       }
     });
   }
@@ -189,7 +189,7 @@ export class CacheService implements OnDestroy, ICacheService {
   public getCachedObject(metaInfoSelector: MetaInfoTag, keyValue: number): any {
     const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
     if (metaInfo && metaInfo.fields) {
-      const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
+      const primaryKeyName = this.metaInfoService.getPrimaryKeyName(metaInfo.fields);
       const cachedObject = this.getCachedTable(metaInfoSelector).find(tableItem => {
         return tableItem[primaryKeyName] === keyValue;
       });
@@ -202,7 +202,7 @@ export class CacheService implements OnDestroy, ICacheService {
   public setCachedObject(metaInfoSelector: MetaInfoTag, keyValue: number, data: any): void {
     const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
     if (metaInfo && metaInfo.fields) {
-      const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
+      const primaryKeyName = this.metaInfoService.getPrimaryKeyName(metaInfo.fields);
       const table = this.getCachedTable(metaInfoSelector);
       const index = table.findIndex((tableItem: any) => tableItem[primaryKeyName] === keyValue);
       if (index === -1) {
@@ -216,7 +216,7 @@ export class CacheService implements OnDestroy, ICacheService {
   public deleteCachedObject(metaInfoSelector: MetaInfoTag, keyValue: number): void {
     const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
     if (metaInfo && metaInfo.fields) {
-      const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
+      const primaryKeyName = this.metaInfoService.getPrimaryKeyName(metaInfo.fields);
       const table = this.getCachedTable(metaInfoSelector);
       const index = table.findIndex((tableItem: any) => tableItem[primaryKeyName] === keyValue);
       if (index > -1) {
@@ -226,7 +226,7 @@ export class CacheService implements OnDestroy, ICacheService {
   }
 
   public getMetaInfoInstance(metaInfoSelector: MetaInfoTag): MetaInfo {
-    return this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
+    return this.metaInfoService.getMetaInfoInstance(metaInfoSelector);
   }
 
   public refreshConnectedTables(connectedTables: MetaInfoTag[]): Observable<any> {

@@ -1,20 +1,19 @@
+import { MessageDialogService } from './../../services/message-dialog.service';
 import { ControlType } from './../../meta-info/meta-info.model';
 import {
-  Component, OnInit, Inject, OnDestroy, ChangeDetectorRef, AfterContentChecked, ViewChildren,
-  QueryList, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectionStrategy
+  Component, OnInit, Inject, OnDestroy, ChangeDetectorRef, ViewChildren,
+  QueryList, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectionStrategy, AfterContentChecked
 } from '@angular/core';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { Subject, Observable, BehaviorSubject } from 'rxjs';
-import Globalize from 'globalize/dist/globalize';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, Observable, BehaviorSubject, of } from 'rxjs';
+import { takeUntil, share } from 'rxjs/operators';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { CrudFieldsComponent } from '../crud-fields/crud-fields.component';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { GenericFieldInfo, MetaInfo, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
 import { CrudObjectsService } from '../../services/crud-objects.service';
-import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
 import { MetaInfoService } from '../../services/meta-info.service';
 
@@ -28,10 +27,10 @@ export class CrudFormResult {
   styleUrls: ['./crud-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked, OnDestroy, AfterViewInit {
+export class CrudFormComponent implements OnInit, OnDestroy, OnDestroy, AfterViewInit, AfterContentChecked {
 
   @ViewChildren(CrudFieldsComponent) crudFieldsComponents: QueryList<CrudFieldsComponent>;
-  @ViewChild(MatTabGroup) tabGroup: MatTabGroup;
+  @ViewChild('tabGroup') tabGroup: MatTabGroup;
   @Output() refreshTableData = new EventEmitter<CrudTableResult>();
 
   public dataready = false;
@@ -41,15 +40,18 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   public metaInfoSelector: MetaInfoTag;
   public lookupListDataMap = new Map<MetaInfoTag, BehaviorSubject<any[]>>();
   public tabIndex = 0;
+  public isSaveButtonDisabled = false;
+  public showApplyButton = false;
+  public firstForm: FormGroup;
+  public primaryKeyName: string;
 
-  private primaryKeyName: string;
   private ngUnsubscribe = new Subject();
   private oldModelData = {};
   private applyModelData = null;
-  private numberParser: (value: string) => number;
 
   ControlType = ControlType;
   MetaInfoTag = _MetaInfoTag;
+  SnackBarType = SnackBarType;
 
   public formMap = new Map<MetaInfoTag, FormGroup>();
   constructor(private fb: FormBuilder,
@@ -57,33 +59,37 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     public dialog: MatDialog,
     private crudService: CrudService,
     @Inject(MAT_DIALOG_DATA) public crudFormParameter: CrudFormParameter,
-    private cdref: ChangeDetectorRef,
     private crudObjectsService: CrudObjectsService,
-    private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
     private changeDetection: ChangeDetectorRef,
-    private metaInfoService: MetaInfoService) {
+    private metaInfoService: MetaInfoService,
+    private messageDialogService: MessageDialogService) {
 
     this.metaInfoSelector = this.getMetaInfoSelector(0);
   }
 
   ngOnInit(): void {
-    this.numberParser = Globalize.numberParser();
     this.metaInfo = this.metaInfoService.getMetaInfoInstance(this.crudFormParameter.metaInfoSelector);
     this.updateFields = this.metaInfoService.getUpdateFields(this.metaInfo.fields);
     this.pages = this.getPages();
-    this.primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(this.metaInfo.fields);
+    this.primaryKeyName = this.metaInfoService.getPrimaryKeyName(this.metaInfo.fields);
 
     this.prepareForm();
-  }
 
-  ngAfterContentChecked(): void {
-    this.cdref.detectChanges();
+    this.isSaveButtonDisabled = this.getIsSaveButtonDisabled();
+    this.showApplyButton = this.getShowApplyButton();
+    this.firstForm = this.formMap.get(this.crudFormParameter.metaInfoSelector);
   }
 
   ngAfterViewInit(): void {
     this.oldModelData = this.retrieveModelData();
-    this.dataready = true;
+  }
+
+  ngAfterContentChecked(): void {
+    this.changeDetection.detectChanges();
+    setTimeout(() => {
+      this.dataready = true;
+    });
   }
 
   ngOnDestroy(): void {
@@ -111,158 +117,152 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public saveForm(): void {
-
-    const saveData = this.retrieveModelData();
-    if (saveData) {
-      const pageSelector = this.getMetaInfoSelector(this.tabIndex);
-      const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(pageSelector);
-      if (this.crudFormParameter.isFormLevel && !(metaInfo && metaInfo.restPath)) {
-        this.close(saveData);
-      } else {
-        this.save(this.crudFormParameter.parentMetaInfoselector, saveData, this.crudFormParameter.parentData)
-          .pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => {
-            this.changeDetection.markForCheck();
-            this.close(saveData);
-          }, error => {
-            const parameter: SnackBarParameter = {
-              message: `Error while update: ${error} `,
-              type: SnackBarType.warn
-            };
-            this.snackBarService.openSnackbar(parameter);
-            this.changeDetection.markForCheck();
-          });
+    this.applyForm().pipe(takeUntil(this.ngUnsubscribe)).subscribe((modelData: any) => {
+      if (modelData) {
+        this.close(modelData);
       }
+    });
+    // const modelData = this.retrieveModelData();
+    // if (modelData) {
+    //   const pageSelector = this.getMetaInfoSelector(this.tabIndex);
+    //   const metaInfo = this.metaInfoService.getMetaInfoInstance(pageSelector);
+    //   if (this.crudFormParameter.isFormLevel && !(metaInfo && metaInfo.restPath)) {
+    //     this.close(modelData);
+    //   } else {
+    //     this.save(this.crudFormParameter.parentMetaInfoSelector, modelData, this.crudFormParameter.parentData)
+    //       .pipe(takeUntil(this.ngUnsubscribe)).subscribe((resultData: any) => {
+    //         this.crudObjectsService.setPrimaryKeyValue(this.crudFormParameter.parentMetaInfoSelector, resultData, modelData);
+    //         this.close(modelData);
+    //       }, error => {
+    //         const dialogParameter: SnackBarParameter = {
+    //           message: `Error while update: ${error} `,
+    //           type: SnackBarType.warn
+    //         };
+    //         this.snackBarService.openSnackbar(dialogParameter);
+    //       });
+    //   }
+    // } else {
+    //   this.close(null);
+    // }
+  }
+
+  public applyForm(): Observable<any> {
+    const modelData = this.retrieveModelData();
+    this.crudFormParameter.data = modelData;
+    let applyResult$ = null;
+
+    if (modelData) {
+      const isUpdate = modelData[this.primaryKeyName];
+      applyResult$ = this.save(this?.crudFormParameter?.parentMetaInfoSelector, modelData, this.crudFormParameter.parentData).pipe(share());
+      applyResult$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((resultData: any) => {
+        if (resultData && this?.crudFormParameter?.data) {
+          // this.crudObjectsService.setPrimaryKeyValue(this.crudFormParameter.parentMetaInfoSelector, resultData, modelData);
+          this.applyModelData = this.crudFormParameter.data;
+          this.oldModelData = this.crudFormParameter.data;
+
+          const dialogParameter: SnackBarParameter = {
+            message: isUpdate ? `Existing entry for ${this.metaInfo.title} was updated` :
+              `New entry for ${this.metaInfo.title} was created`,
+            type: SnackBarType.success
+          };
+
+          this.snackBarService.openSnackbar(dialogParameter);
+          // this.changeDetection.markForCheck();
+          this.firstForm.markAsPristine();
+        }
+      }, (error: string) => {
+        const dialogParameter: SnackBarParameter = {
+          message: `Error while update: ${error}`,
+          type: SnackBarType.warn
+        };
+
+        this.snackBarService.openSnackbar(dialogParameter);
+        // this.changeDetection.markForCheck();
+      });
     } else {
-      this.close(null);
+      applyResult$ = of(null);
     }
+
+    return applyResult$;
   }
 
   public save(parentMetaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
     return this.crudService.save(parentMetaInfoSelector, this.crudFormParameter.metaInfoSelector, data, parentData);
   }
 
-  public applyForm(): void {
-    const modelData = this.retrieveModelData();
-    this.crudFormParameter.data = modelData;
-
-    if (modelData) {
-      const parentMetaInfoselector = this?.crudFormParameter?.parentMetaInfoselector;
-      this.save(parentMetaInfoselector, modelData, this.crudFormParameter.parentData)
-        .pipe(takeUntil(this.ngUnsubscribe)).subscribe((responseData: any) => {
-          if (responseData && this?.crudFormParameter.data) {
-            const isUpdate = modelData[this.primaryKeyName];
-            this.crudFormParameter.data[this.primaryKeyName] = responseData?.[this.primaryKeyName] || null;
-            this.applyModelData = this.crudFormParameter.data;
-            this.oldModelData = this.crudFormParameter.data;
-
-            const parameter: SnackBarParameter = {
-              message: isUpdate ? `Existing entry for ${this.metaInfo.title} was updated` :
-                `New entry for ${this.metaInfo.title} was created`,
-              type: SnackBarType.success
-            };
-
-            this.snackBarService.openSnackbar(parameter);
-            this.changeDetection.markForCheck();
-          }
-        }, error => {
-          const parameter: SnackBarParameter = {
-            message: `Error while update: ${error}`,
-            type: SnackBarType.warn
-          };
-
-          this.snackBarService.openSnackbar(parameter);
-          this.changeDetection.markForCheck();
-        });
-    }
-  }
-
   private retrieveModelData(): any {
+    const saveData: any = {};
     const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
-    let modelData = {};
     if (form.valid) {
-      const formData = this.retrieveFormData();
-      modelData = this.mapModelData(formData, this.crudFormParameter.data, this.crudFormParameter.parentData);
-      this.preparePrimaryKeyInFormData(modelData);
+      this.crudFieldsComponents.forEach((crudField) => {
+        const field = crudField.field;
+        if (field.type === ControlType.referenceByParentData) {
+          saveData[field.name] = this.crudFormParameter.parentData[field.name];
+        } else {
+          saveData[field.name] = crudField.getControlValue();
+        }
+      });
+      this.preparePrimaryKeyInFormData(saveData);
     }
-    return modelData;
+    return saveData;
   }
 
-  private retrieveFormData(): FormGroup {
-    const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
-    return form?.getRawValue();
-  }
-
-  private preparePrimaryKeyInFormData(formData: any): void {
-    if (!formData) {
+  private preparePrimaryKeyInFormData(saveData: any): void {
+    if (!saveData) {
       return;
     }
     if (this.crudFormParameter.data) {
-      formData[this.primaryKeyName] = this.crudFormParameter.data[this.primaryKeyName] || null;
+      saveData[this.primaryKeyName] = this.crudFormParameter.data[this.primaryKeyName] || null;
     } else {
-      formData[this.primaryKeyName] = null;
+      saveData[this.primaryKeyName] = null;
     }
   }
 
-  private mapModelData(formData: any, data: any[], parentData: any[]): any {
-    if (!this.updateFields || !this.crudFieldsComponents) {
-      return null;
-    }
-    const saveData: any = {};
-    this.updateFields.forEach(field => {
-      const fieldValue = formData[field.name];
-      switch (field.type) {
-        case ControlType.number:
-          const numberValue = fieldValue ? this.numberParser(fieldValue) : null;
-          saveData[field.name] = numberValue === null || isNaN(numberValue) ? null : numberValue;
-          break;
-        case ControlType.boolean:
-          saveData[field.name] = fieldValue ? true : false;
-          break;
-        case ControlType.select:
-        case ControlType.selectAutocomplete:
-          saveData[field.name] = this.crudObjectsService.getLookupKey(field, fieldValue || {});
-          break;
-        case ControlType.selectMulti:
-          saveData[field.name] = this.crudObjectsService.getLookupKeyArray(field, fieldValue || []);
-          break;
-        case ControlType.selectMultiObject:  // actual not used
-          saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, fieldValue);
-          break;
-        case ControlType.selectMultiObjectJoin:
-          saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, fieldValue);
-          break;
-        case ControlType.referenceByParentData:
-          saveData[field.name] = parentData[field?.parentKeyName || field.name];
-          break;
-        case ControlType.checkList:
-          {
-            const crudField = this.crudFieldsComponents.find((fieldComponent) => fieldComponent.field.name === field.name);
-            saveData[field.name] = this.crudObjectsService.getLookupKeyArray(field, crudField.getSelectionList());
-          }
-          break;
-        case ControlType.checkListObject:
-          {
-            const crudField = this.crudFieldsComponents.find((fieldComponent) => fieldComponent.field.name === field.name);
-            saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, crudField.getSelectionList());
-          }
-          break;
-        case ControlType.tableMasterDetail:
-          // No result expected, because it is already saved!
-          // The deal with backend is, that content=null for association, no changes will applied
-          saveData[field.name] = null;
-          break;
-        case ControlType.table:
-        case ControlType.tableJoin:
-          saveData[field.name] = data[field.name];
-          break;
-        default:
-          saveData[field.name] = fieldValue;
-          break;
-      }
-    });
+  // private mapModelData(formData: any, data: any[], parentData: any[]): any {
+  //   if (!this.updateFields) {
+  //     return null;
+  //   }
 
-    return saveData;
-  }
+  //   const saveData: any = {};
+  //   this.crudFieldsComponents.forEach((crudField) => {
+  //     saveData[crudField.field.name] = crudField.getControlValue();
+  //   });
+
+  //   // this.updateFields.forEach(field => {
+  //   //   const fieldValue = formData[field.name];
+  //   //   switch (field.type) {
+  //   //     case ControlType.number:
+  //   //     case ControlType.string:
+  //   //     case ControlType.boolean:
+  //   //     case ControlType.select:
+  //   //     case ControlType.selectMulti:
+  //   //     case ControlType.selectMultiObject:
+  //   //     case ControlType.checkList:
+  //   //     case ControlType.checkListObject:
+  //   //     case ControlType.tableMasterDetail:
+  //   //     case ControlType.referenceByParentData:
+  //   //       break;
+
+  //   //     case ControlType.selectAutocomplete:
+  //   //       saveData[field.name] = this.crudObjectsService.getLookupKey(field, fieldValue || {});
+  //   //       break;
+
+  //   //     case ControlType.selectMultiObjectJoin:
+  //   //       saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, fieldValue);
+  //   //       break;
+
+  //   //     case ControlType.table:
+  //   //     case ControlType.tableJoin:
+  //   //       saveData[field.name] = data[field.name];
+  //   //       break;
+  //   //     default:
+  //   //       saveData[field.name] = fieldValue;
+  //   //       break;
+  //   //   }
+  //   // });
+
+  //   return saveData;
+  // }
 
   private close(saveData: any): void {
     this.crudFormDialogRef.close(saveData);
@@ -270,7 +270,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
 
   public closeForm(): void {
     let saveData = null;
-    if (this.applyModelData && this.hasFormChanged()) {
+    if (this.applyModelData && this.firstForm.valid) {
       saveData = this.applyModelData;
     }
     this.crudFormDialogRef.close(saveData);
@@ -282,23 +282,22 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public isNewRow(field: GenericFieldInfo): boolean {
-    return field.formatOption && field.formatOption.beginFieldRow;
+    return field?.formatOption?.beginFieldRow;
   }
 
   public getGroupHeader(group: GenericFieldInfo[][]): string {
-    return (group && group.length && group[0].length && group[0][0].formatOption) ? group[0][0].formatOption.groupName : '';
+    return group[0]?.[0]?.formatOption?.groupName;
   }
 
-  public showApplyButton(): boolean {
-    if (!this.crudFormParameter || !this.metaInfo || !this.crudFormParameter.data) {
+  public getShowApplyButton(): boolean {
+    if (!this.crudFormParameter || !this.metaInfo) {
       return false;
     } else {
-      return (!this.crudFormParameter.data[this.primaryKeyName] && this.hasMasterDetailChildTable()) || this.hasTabs();
+      return (!this.primaryKeyName && this.hasMasterDetailChildTable()) || this.hasTabs();
     }
   }
 
-  public isSaveButtonDisabled(): boolean {
-    const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
+  public getIsSaveButtonDisabled(): boolean {
     const isDisabled = !this.metaInfo.fields.some((field) => {
       const isEnabled = this.isEnabled(field);
       const editAllowed = !this.crudFormParameter.editAllowedList || this.crudFormParameter?.editAllowedList.includes(field.name);
@@ -306,7 +305,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       return fieldWriteable;
     });
     // console.log('\'isSaveButtonDisabled\' was called');
-    return this.tabIndex > 0 || form.invalid || isDisabled;
+    return isDisabled;
   }
 
   public isApplyButtonDisabled(): boolean {
@@ -336,7 +335,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public hasTabs(): boolean {
-    return this.metaInfoService.hasTabs(this.metaInfo);
+    return this.metaInfoService.hasTabs(this.metaInfo) ?? false;
   }
 
   public getMetaInfoSelector(index: number): MetaInfoTag {
@@ -356,29 +355,34 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
 
   public getPrimaryKey(index: number): GenericFieldInfo {
     const pageSelector = this.getMetaInfoSelector(index);
-    const pageMetaInfo = this.metaInfoBaseService.getMetaInfoInstance(pageSelector);
+    const pageMetaInfo = this.metaInfoService.getMetaInfoInstance(pageSelector);
     return pageMetaInfo.fields.find(field => field.isPrimaryKey);
   }
 
   public tabClick(event: MatTabChangeEvent): void {
+    this.firstForm.updateValueAndValidity();
+    if (this.firstForm.dirty && this.tabGroup.selectedIndex > 0) {
+      this.messageDialogService.showConfirmDialog(`You have unsaved changes. Would you like to proceed and discard the changes?`)
+        .afterClosed().pipe((takeUntil(this.ngUnsubscribe))).subscribe((proceed: boolean) => {
+          if (!proceed) {
+            this.tabGroup.selectedIndex = 0;
+          }
+        });
+    }
     this.tabIndex = event.index;
     if (event.index > 0) {
       this.selectNewTabPage(event.index);
     } else {
       this.crudFormParameter.data = this.oldModelData;
-      this.updateControls(this.oldModelData);
+      // this.updateControls(this.oldModelData);
     }
-  }
-
-  public hasFormChanged(): boolean {
-    return this.dataready && this.tabIndex === 0 &&
-      !this.crudObjectsService.isEqualModel(this.metaInfo, this.oldModelData, this.retrieveModelData());
   }
 
   private selectNewTabPage(index: number): void {
     const pageSelector = this.getMetaInfoSelector(index);
     if (!this.lookupListDataMap.get(pageSelector)) {
-      const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
+      const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0),
+        pageSelector, this.crudFormParameter.data);
       this.lookupListDataMap.set(pageSelector, detailData$);
     }
   }
@@ -392,8 +396,10 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     if (this.tabIndex > 0) {
       const pageSelector = this.getMetaInfoSelector(this.tabIndex);
       if (pageSelector) {
-        const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
+        const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0),
+          pageSelector, this.crudFormParameter.data);
         this.lookupListDataMap.set(pageSelector, detailData$);
+        detailData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe(() => this.changeDetection.markForCheck());
       }
     } else {
       const metaInfoSelector = crudTableResult.field?.lookup?.metaInfoSelector;
@@ -401,13 +407,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
         this.lookupListDataMap.set(metaInfoSelector, new BehaviorSubject<any[]>(crudTableResult.data));
       }
     }
-    this.changeDetection.markForCheck();
-  }
-
-  private updateControls(modelData: any): void {
-    this.crudFieldsComponents.forEach(crudField => {
-      crudField.updateControl(modelData);
-    });
+    // this.changeDetection.markForCheck();
   }
 }
 

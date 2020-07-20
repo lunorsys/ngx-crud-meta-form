@@ -1,0 +1,5 @@
+<mat-form-field>
+  <mat-label>{{field.label}}</mat-label>
+  <input matInput type="text" placeholder="{{field.label}}" [formControl]="control" [required]="field.required">
+  <mat-error>{{'Please enter a valid entry for '+field.label}}</mat-error>
+</mat-form-field>

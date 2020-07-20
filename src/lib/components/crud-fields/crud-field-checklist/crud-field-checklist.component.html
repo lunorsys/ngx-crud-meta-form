@@ -1,0 +1,8 @@
+<div fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
+  <h4>{{field.label}}</h4>
+  <mat-selection-list #selectionList class="selection-list" [formControl]="control" role="listbox" multiple="true">
+    <mat-list-option *ngFor="let item of tableData$ | async" [selected]="isSelected(item)" [value]="item">
+      {{displayLookupLine(item)}}
+    </mat-list-option>
+  </mat-selection-list>
+</div>

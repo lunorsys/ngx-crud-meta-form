@@ -50,9 +50,10 @@
     "rxjs-compat": "^6.6.0",
     "rxjs-tslint": "^0.1.8",
     "sockjs-client": "^1.4.0",
-    "tslib": "^2.0.0",
     "tslint": "^6.1.2",
     "zone.js": "^0.10.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "tslib": "^2.0.0"
+  }
 }

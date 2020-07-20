@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { GenericFieldInfo, MetaInfo, MetaInfoTag, ControlType } from '../meta-info/meta-info.model';
 import { CrudConfig } from '../models/crud-config';
-import { MetaInfoBaseService } from './meta-info-base.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,8 +8,7 @@ import { MetaInfoBaseService } from './meta-info-base.service';
 export class MetaInfoService {
 
   constructor(
-    private crudConfig: CrudConfig,
-    private metaInfoBaseService: MetaInfoBaseService
+    private crudConfig: CrudConfig
   ) {
     this.metaInfoDefinitions = this.crudConfig.metaInfoDefinitions;
   }
@@ -18,7 +16,7 @@ export class MetaInfoService {
   private metaInfoDefinitions: Map<MetaInfoTag, MetaInfo>;
 
   public prepareFieldStructure(metaInfoSelector: string): GenericFieldInfo[][][] {
-    const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
+    const metaInfo = this.getMetaInfoInstance(metaInfoSelector);
     const updateFields = this.getUpdateFields(metaInfo.fields);
     const fieldStructure = this.getFieldStructure(updateFields);
     return fieldStructure;
@@ -74,9 +72,9 @@ export class MetaInfoService {
     return field?.formatOption?.formFlexParameter ?? null;
   }
 
-  public getMetaInfoInstance(metaInfoSelector: MetaInfoTag): MetaInfo {
-    return this.metaInfoDefinitions.get(metaInfoSelector);
-  }
+  // public getMetaInfoInstance(metaInfoSelector: MetaInfoTag): MetaInfo {
+  //   return this.metaInfoDefinitions.get(metaInfoSelector);
+  // }
 
   public getFormDialogWidth(metaInfo: MetaInfo): string {
     return metaInfo && metaInfo.formWidth ? metaInfo.formWidth : '500px';
@@ -109,5 +107,65 @@ export class MetaInfoService {
       ControlType.selectMultiObjectJoin,
       ControlType.tableJoin,
     ].includes(field.type);
+  }
+
+
+  public normalizeRestPath(metaInfo: MetaInfo): string {
+    let restPath = '';
+    if (metaInfo.restPath) {
+      const restPathArr = metaInfo.restPath.split('/');
+      restPathArr.forEach((part: string, index: number) => {
+        if (part.startsWith('{') && part.endsWith('}')) {
+          restPathArr[index] = null;
+        }
+      });
+      restPath = restPathArr.filter(Boolean).join('/');
+    }
+    return restPath;
+  }
+
+  public extractRestPath(metaInfo: MetaInfo, parentKeyValue: any): string {
+    if (metaInfo.restPath) {
+      if (metaInfo.restPath.includes('{')) {
+
+        const restPathArr = metaInfo.restPath.split('/');
+        restPathArr.forEach((part: string, index: number) => {
+          if (part.startsWith('{') && part.endsWith('}')) {
+            restPathArr[index] = parentKeyValue;
+          }
+        });
+        if (restPathArr.some((path: string) => path === undefined)) {
+          return null;
+        } else {
+          return restPathArr.filter(Boolean).join('/');
+        }
+      } else {
+        return metaInfo.restPath;
+      }
+    } else {
+      console.error(`Crud: There is not rest path defined for '${metaInfo.title}'`);
+    }
+
+    return metaInfo.restPath;
+  }
+
+  public getPrimaryKeyName(fields: GenericFieldInfo[]): string {
+    const primaryKeyName = fields.find(field => field.isPrimaryKey)?.name;
+    if (!primaryKeyName) {
+      console.error(`Crud: No primaryKeyName found`);
+    }
+    return primaryKeyName;
+  }
+
+  public getMetaInfoInstance(metaInfoSelector: MetaInfoTag | string): MetaInfo {
+    const metaInfo = this.metaInfoDefinitions.get(metaInfoSelector);
+    if (!metaInfo) {
+      console.error(`Crud: No metaInfo found for '${metaInfoSelector}'`);
+    }
+    return metaInfo;
+  }
+
+  public hasMasterDetailChildTable(metaInfo: MetaInfo): boolean {
+    return metaInfo.fields.some((control) => control.type === ControlType.tableMasterDetail);
   }
 }

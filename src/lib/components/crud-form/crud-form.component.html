@@ -1,12 +1,14 @@
 <ngx-crud-styles></ngx-crud-styles>
-<div class="crud-form dialog">
+<div class="crud-form dialog" *ngIf="dataready">
   <div mat-dialog-title>
     {{metaInfo.title}}
   </div>
   <mat-dialog-content fxLayout="column" fxLayoutAlign="stretch stretch">
-    <mat-tab-group *ngIf="hasTabs()" (selectedTabChange)="tabClick($event)" [disableRipple]="true">
+    <mat-tab-group #tabGroup *ngIf="metaInfo?.tabPages?.length > 0" (selectedTabChange)="tabClick($event)"
+      [disableRipple]="true">
       <ng-container *ngFor="let page of pages; let pageIndex = index">
-        <mat-tab label="{{getTabLabel(pageIndex)}}" [disabled]="hasFormChanged() && pageIndex > 0">
+        <!-- firstForm.dirty && pageIndex > 0 -->
+        <mat-tab label="{{getTabLabel(pageIndex)}}" [disabled]="false">
           <form [formGroup]="getForm(pageIndex)">
             <ng-template matTabContent>
               <mat-card fxLayout="row" fxFlex>
@@ -17,7 +19,7 @@
                       </mat-card-subtitle>
                       <div *ngFor="let lines of group" fxLayout="row" fxLayoutAlign="start stretch">
                         <ng-container *ngFor="let field of lines">
-                          <ngx-crud-fields [parentForm]="getForm(pageIndex)" [field]="field"
+                          <ngx-crud-fields #crudFieldsComponentTab [parentForm]="getForm(pageIndex)" [field]="field"
                             [metaInfoSelector]="getMetaInfoSelector(pageIndex)" *ngIf="isEnabled(field)"
                             fxFlex="{{getFlexParameter(field)}}" (refreshTableData)="onRefreshTableData($event)">
                           </ngx-crud-fields>
@@ -27,9 +29,9 @@
                   </ng-container>
                   <ng-container *ngIf="pageIndex > 0">
                     <ngx-crud-table fxfill [listData]="getJoinedTableData(pageIndex) | async"
-                      [metaInfoSelector]="getMetaInfoSelector(pageIndex)" [isFormLevel]="true"
-                      [sourceField]="getPrimaryKey(pageIndex)" [parentData]="crudFormParameter.data"
-                      [parentMetaInfoselector]="metaInfoSelector" (refreshTableData)="onRefreshTableData($event)">
+                      [metaInfoSelector]="getMetaInfoSelector(pageIndex)" [field]="getPrimaryKey(pageIndex)"
+                      [parentData]="crudFormParameter.data" [parentMetaInfoSelector]="metaInfoSelector"
+                      (refreshTableData)="onRefreshTableData($event)">
                     </ngx-crud-table>
                   </ng-container>
                 </mat-card-content>
@@ -40,7 +42,7 @@
       </ng-container>
     </mat-tab-group>
 
-    <form *ngIf="!hasTabs()" [formGroup]="getForm(0)">
+    <form *ngIf="!hasTabs()" [formGroup]="firstForm">
       <mat-card fxLayout="column">
         <mat-card-content fxLayout="column" fxLayoutAlign="begin stretch">
           <ng-container *ngFor="let group of pages[0]">
@@ -48,7 +50,7 @@
             </mat-card-subtitle>
             <div *ngFor="let lines of group" fxLayout="row" fxLayoutAlign="start stretch">
               <ng-container *ngFor="let field of lines">
-                <ngx-crud-fields [parentForm]="getForm(0)" [field]="field"
+                <ngx-crud-fields #crudFieldsComponentPage [parentForm]="getForm(0)" [field]="field"
                   [metaInfoSelector]="crudFormParameter.metaInfoSelector" *ngIf="isEnabled(field)"
                   (refreshTableData)="onRefreshTableData($event)" fxFlex="{{getFlexParameter(field)}}">
                 </ngx-crud-fields>
@@ -62,9 +64,9 @@
   </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button mat-raised-button mat-dialog-close tabindex="-1" (click)="closeForm()">Cancel</button>
-    <button *ngIf="showApplyButton()" [disabled]="isApplyButtonDisabled()" mat-raised-button (click)="applyForm()"
-      color="primary">Apply</button>
-    <button [disabled]="isSaveButtonDisabled() || tabIndex > 0" mat-raised-button (click)="saveForm()"
-      color="primary">Ok</button>
+    <button *ngIf="showApplyButton" [disabled]="firstForm?.invalid && firstForm?.pristine || tabIndex > 0"
+      mat-raised-button (click)="applyForm()" color="primary">Apply</button>
+    <button [disabled]="isSaveButtonDisabled || firstForm?.invalid || tabIndex > 0 || !dataready" mat-raised-button
+      (click)="saveForm()" color="primary">Ok</button>
   </mat-dialog-actions>
 </div>

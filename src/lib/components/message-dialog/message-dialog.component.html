@@ -1,0 +1,21 @@
+<div mat-dialog-content>
+	<p> {{message}} </p>
+</div>
+
+<mat-dialog-actions align="center" [ngSwitch]="buttons">
+
+	<ng-container *ngSwitchCase="'deleteCancel'">
+		<button mat-raised-button color="danger" (click)="onConfirm()" tabindex="1"> Delete </button>
+		<button mat-raised-button mat-dialog-close tabindex="-1"> Cancel </button>
+	</ng-container>
+
+	<ng-container *ngSwitchCase="'yesNo'">
+		<button mat-button (click)="onDismiss()">No</button>
+		<button mat-raised-button color="primary" (click)="onConfirm()">Yes</button>
+	</ng-container>
+
+	<ng-container *ngSwitchCase="'ok'">
+		<button mat-raised-button color="primary" (click)="onConfirm()">Ok</button>
+	</ng-container>
+
+</mat-dialog-actions>
