@@ -13,7 +13,7 @@
     <mat-cell fxFlex="{{getflexParameter(field)}}" fxLayout="row"
       [class.number-field]="field.type === ControlType.number"
       fxLayoutAlign="{{field.type === ControlType.number ? 'end center': 'start center'}}" *matCellDef="let row">
-      <span>{{getFieldValue(row, field, isFormLevel, metaTableInfo)}}</span>
+      <span>{{getFieldValue(row, field)}}</span>
     </mat-cell>
   </ng-container>
 

@@ -22,7 +22,8 @@
     </mat-select>
   </mat-form-field>
 
-  <mat-form-field *ngIf="field.type === ControlType.selectMulti" fxLayout="row" fxLayoutAlign="start start">
+  <mat-form-field *ngIf="field.type === ControlType.selectMulti || field.type === ControlType.selectMultiObject ||
+    field.type === ControlType.selectMultiObjectJoin" fxLayout="row" fxLayoutAlign="start start">
     <mat-label>{{field.label}}</mat-label>
     <mat-select placeholder="{{field.label}}" [formControl]="getFormControl(field)" [required]="field.required"
       multiple>
@@ -42,7 +43,8 @@
     </mat-selection-list>
   </div>
 
-  <div *ngIf="field.type === ControlType.checkListObject" fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
+  <div *ngIf="field.type === ControlType.checkListObject || field.type === ControlType.checkListObjectJoin"
+    fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">
     <h4>{{field.label}}</h4>
     <mat-selection-list #selectionList class="selection-list" [formControl]="getFormControl(field)">
       <mat-list-option *ngFor="let item of getTableData(field) | async" [selected]="isSelectedObject(item)"
@@ -52,15 +54,8 @@
     </mat-selection-list>
   </div>
 
-  <div fxLayout="column" fxFlex="1 1 100%" *ngIf="field.type === ControlType.table">
-    <h4>{{field.label}}</h4>
-    <ngx-crud-table fxfill [listData]="getTableData(field) | async" [metaInfoSelector]="field?.lookup?.metaInfoSelector"
-      [isFormLevel]="true" [sourceField]="field" (refreshTableData)="onRefreshTableData($event)"
-      [parentData]="parameter.data">
-    </ngx-crud-table>
-  </div>
-
-  <div fxLayout="column" fxFlex="1 1 100%" *ngIf="field.type === ControlType.tableMasterDetail">
+  <div fxLayout="column" fxFlex="1 1 100%"
+    *ngIf="field.type === ControlType.table || field.type === ControlType.tableJoin || field.type === ControlType.tableMasterDetail">
     <h4>{{field.label}}</h4>
     <ngx-crud-table fxfill [listData]="getTableData(field) | async" [metaInfoSelector]="field?.lookup?.metaInfoSelector"
       [isFormLevel]="true" [sourceField]="field" (refreshTableData)="onRefreshTableData($event)"

@@ -7,10 +7,18 @@ import { CrudConfig } from '../models/crud-config';
   providedIn: 'root'
 })
 export class MetaInfoBaseService {
-  private metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>;
 
   constructor(private crudConfig: CrudConfig) {
     this.metaInfoDefinitions = this.crudConfig.metaInfoDefinitions;
+  }
+  private metaInfoDefinitions: Map<MetaInfoTag | MetaInfoTag, MetaInfo>;
+
+  public static getMetaInfoInstance(metaInfoSelector: MetaInfoTag, metaInfoDefinitions: Map<MetaInfoTag, MetaInfo>): MetaInfo {
+    const metaInfo = metaInfoDefinitions.get(metaInfoSelector);
+    if (!metaInfo) {
+      console.error(`Crud: No metaInfo found for '${metaInfoSelector}'`);
+    }
+    return metaInfo;
   }
 
   public normalizeRestPath(metaInfo: MetaInfo): string {
@@ -53,11 +61,7 @@ export class MetaInfoBaseService {
   }
 
   public getPrimaryKeyName(fields: GenericFieldInfo[]): string {
-    const primaryKeyField = fields.find(field => field.isPrimaryKey);
-    let primaryKeyName: string = null;
-    if (primaryKeyField) {
-      primaryKeyName = primaryKeyField.name;
-    }
+    const primaryKeyName = fields.find(field => field.isPrimaryKey)?.name;
     if (!primaryKeyName) {
       console.error(`Crud: No primaryKeyName found`);
     }

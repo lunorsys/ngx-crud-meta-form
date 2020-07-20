@@ -15,12 +15,13 @@ import Globalize from 'globalize/dist/globalize';
 //
 import { MetaInfo, MetaInfoTag, GenericFieldInfo, ControlType, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
-import { MetaInfoService } from '../../services/meta-info.service';
+import { CrudObjectsService } from '../../services/crud-objects.service';
 import { CrudService } from '../../services/crud.service';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
 import { CrudFormComponent, CrudFormResult } from '../crud-form/crud-form.component';
 import { CACHE_TOKEN, ICacheService } from '../../interfaces/icache.service';
+import { MetaInfoService } from '../../services/meta-info.service';
 
 @Component({
   selector: 'ngx-crud-table',
@@ -109,9 +110,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     @Inject(CACHE_TOKEN) private cacheService: ICacheService,
     private crudService: CrudService,
     private cdref: ChangeDetectorRef,
-    private metaInfoService: MetaInfoService,
+    private crudObjectsService: CrudObjectsService,
     private metaInfoBaseService: MetaInfoBaseService,
-    private snackBarService: SnackBarService) {
+    private snackBarService: SnackBarService,
+    private metaInfoService: MetaInfoService) {
 
     this.metaTableInfo = new MetaInfo();
     this.metaInfo = new MetaInfo();
@@ -153,7 +155,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       }
       let value: any;
 
-      if (this.metaInfoService.isLookupField(sortField)) {
+      if (this.metaInfoService.isFieldForLookup(sortField)) {
         if (sortField.lookup) {
           const lookupKeyMetaInfo = this.metaInfoService.getMetaInfoInstance(sortField.lookup.metaInfoSelector);
           if (lookupKeyMetaInfo) {
@@ -196,7 +198,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     this.dataSource.filter = filterValue;
   }
 
-  public getFieldValue(data: any, field: GenericFieldInfo, isFormLevel: boolean, metaInfo: MetaInfo): any {
+  public getFieldValue(data: any, field: GenericFieldInfo): any {
     const value = data[field.name];
     if (!value && field.type !== ControlType.number ||
       value === null ||
@@ -219,7 +221,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
 
       case ControlType.select:
       case ControlType.selectAutocomplete:
-        result = this.metaInfoService.getLookupValueById(field, value);
+        result = this.crudObjectsService.getLookupValueById(field, value);
         break;
 
       default:

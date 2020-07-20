@@ -12,14 +12,17 @@ export enum ControlType {
   boolean = 'boolean',
   select = 'select',
   selectMulti = 'select-multi',
-  selectMultiObject = 'select-multi-object', // not yet supported!!
-  selectAutocomplete = 'selectAutocomplete',
+  selectMultiObject = 'select-multi-object',
+  selectMultiObjectJoin = 'select-multi-object-join',
+  selectAutocomplete = 'select-autocomplete',
   checkList = 'checkList',
-  checkListObject = 'checkListObject',
+  checkListObject = 'check-list-object',
+  checkListObjectJoin = 'check-list-object-join',
   table = 'table',
-  tableMasterDetail = 'tableMasterDetail',
-  referenceByParentData = 'referenceByParentData',
-  placeHolder = 'placeHolder'
+  tableJoin = 'table-join',
+  tableMasterDetail = 'table-master-detail',
+  referenceByParentData = 'reference-by-parent-data',
+  placeHolder = 'place-holder'
 }
 
 export class GenericControlFormatOption {
@@ -53,7 +56,9 @@ export class GenericFieldInfo {
 
 export class Lookup {
   metaInfoSelector?: MetaInfoTag;
-  getLookupValue?: (item: any) => string;
+  joinMetaInfoSelector?: MetaInfoTag;
+  lookupKeyName?: string;
+  getLookupValue?: (item: any, joinTables: any[][]) => string;
 }
 
 export class FilterMetaInfo {

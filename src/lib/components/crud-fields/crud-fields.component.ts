@@ -10,6 +10,7 @@ import { MatOption } from '@angular/material/core';
 import { MetaInfoTag, GenericFieldInfo, ControlType } from '../../meta-info/meta-info.model';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
+import { CrudObjectsService } from '../../services/crud-objects.service';
 import { MetaInfoService } from '../../services/meta-info.service';
 
 @Component({
@@ -34,6 +35,7 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
 
   constructor(@Inject(MAT_DIALOG_DATA) public parameter: CrudFormParameter,
     private metaInfoBaseService: MetaInfoBaseService,
+    private crudObjectsService: CrudObjectsService,
     private metaInfoService: MetaInfoService) { }
 
   ngOnInit(): void {
@@ -47,8 +49,8 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
 
   private makeControl() {
     const field = this.field;
-    if (this.metaInfoService.showFormField(field)) {
-      const value: string | number | number[] = this.metaInfoService.getFieldValue(this.parameter.data, field);
+    if (this.metaInfoService.isFormFieldVisible(field)) {
+      const value: string | number | number[] = this.crudObjectsService.getFieldValue(this.parameter.data, field);
       let control: FormControl;
       if (field.validator) {
         control = new FormControl(value, field.validator);
@@ -64,27 +66,97 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private setupControl(field: GenericFieldInfo, data: any, value: any, control: FormControl) {
-    const metaInfoSelector = field && field.lookup && field.lookup.metaInfoSelector as MetaInfoTag;
-    const tableData$: BehaviorSubject<any[]> = this.getLookupData(field, data, value);
+  private setupControl(field: GenericFieldInfo, data: any, value: any | any[], control: FormControl) {
+    const metaInfoSelector = field?.lookup?.metaInfoSelector as MetaInfoTag;
+    let tableData$: BehaviorSubject<any[]>;
+    this.lookupListDataMap.set(metaInfoSelector, tableData$);
+    switch (field.type) {
+      case ControlType.select:
+        tableData$ = this.crudObjectsService.getSelectData(field, data, value);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupValue(field, listData, value || null, control);
+        });
+        break;
+
+      case ControlType.selectMulti:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupArrayId(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.selectMultiObject:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupArrayValue(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.selectMultiObjectJoin:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupJoinArrayValue(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.checkList:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupValue(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.checkListObject:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupArrayValue(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.checkListObjectJoin:
+        tableData$ = this.crudObjectsService.getCheckListData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupArrayValue(field, listData, value, control);
+        });
+        break;
+
+      case ControlType.table:
+        tableData$ = this.crudObjectsService.getTableData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupObjectValue(field, listData, control);
+        });
+        break;
+
+      case ControlType.tableJoin:
+        tableData$ = this.crudObjectsService.getTableData(field, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupObjectValue(field, listData, control);
+        });
+        break;
+
+      case ControlType.tableMasterDetail:
+        tableData$ = this.crudObjectsService.getJoinedTableData(this.parameter?.metaInfoSelector, metaInfoSelector, data);
+        tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+          this.crudObjectsService.setLookupValue(field, listData, value, control);
+        });
+        break;
+
+      default:
+        control.setValue(value);
+        break;
+    }
     this.setupLookupControls(metaInfoSelector, tableData$, field, value, control);
   }
 
   public updateControl(data: any) {
     const field = this.field;
-    const value: string | number | number[] = this.metaInfoService.getFieldValue(this.parameter.data, field);
-    const metaInfoSelector = field.lookup && field.lookup.metaInfoSelector as MetaInfoTag;
+    const value: string | number | number[] = this.crudObjectsService.getFieldValue(this.parameter.data, field);
     const control = this.getFormControl(field);
-    if (this.metaInfoService.isLookupField(field)) {
-      const tableData$: BehaviorSubject<any[]> = this.getLookupData(field, data, value);
-      this.setupLookupControls(metaInfoSelector, tableData$, field, value, control);
-    } else {
-      control.setValue(value);
-    }
+    this.setupControl(field, data, value, control);
   }
 
   public getTableData(field: GenericFieldInfo): BehaviorSubject<any[]> {
-    const metaInfoSelector = field && field.lookup && field.lookup.metaInfoSelector || '';
+    const metaInfoSelector = field?.lookup?.metaInfoSelector || '';
     return this.lookupListDataMap.get(metaInfoSelector);
   }
 
@@ -93,18 +165,24 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
     if (!field?.lookup?.getLookupValue) {
       return null;
     } else {
-      let displayLine: string;
-      if (!field.required) {
-        const metaInfoSelector = field.lookup.metaInfoSelector as MetaInfoTag;
-        const childMetaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
-        if (childMetaInfo) {
-          const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(childMetaInfo.fields);
-          if (!item[primaryKeyName]) {
-            displayLine = MetaInfoService.defaultSelectDisplayLine;
-          }
-        }
+      // let displayLine: string;
+      // if (!field.required) {
+      const metaInfoSelector = field.lookup.metaInfoSelector as MetaInfoTag;
+      const childMetaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
+      if (childMetaInfo) {
+        // const lookupKeyField = childMetaInfo.fields.find(lookupField => lookupField?.type === ControlType.selectMultiObject);
+        // if (lookupKeyField) {
+        //   // const primaryKeyName = this.metaInfoBaseService.getPrimaryKeyName(childMetaInfo.fields);
+        //   if (!item[lookupKeyField?.name] && field.required) {
+        //     displayLine = MetaInfoService.defaultSelectDisplayLine;
+        //   }
+        //   // }
+        // } else {
+
+        // }
+        // return displayLine ? displayLine : field.lookup.getLookupValue(item, []);
       }
-      return displayLine ? displayLine : field.lookup.getLookupValue(item);
+      return field.lookup.getLookupValue(item, [])
     }
   }
 
@@ -114,11 +192,11 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
   }
 
   public isSelected(item: any): boolean {
-    return this.metaInfoService.isSelected(this.parameter.data, this.field, item);
+    return this.crudObjectsService.isSelected(this.parameter.data, this.field, item);
   }
 
   public isSelectedObject(item: any): boolean {
-    return this.metaInfoService.isSelectedObject(this.parameter.data, this.field, item);
+    return this.crudObjectsService.isSelectedObject(this.parameter.data, this.field, item);
   }
 
   public getSelectedOptions(): any[] {
@@ -135,31 +213,6 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
     return this.parentForm.get(field.name) as FormControl;
   }
 
-  private getLookupData(field: GenericFieldInfo, data: any[], value: string | number | number[]) {
-    let tableData$: BehaviorSubject<any[]>;
-    switch (field.type) {
-      case ControlType.select:
-        tableData$ = this.metaInfoService.getSelectData(field, data, value);
-        break;
-      case ControlType.selectMulti:
-      case ControlType.selectMultiObject:
-        tableData$ = this.metaInfoService.getCheckListData(field, data);
-        break;
-      case ControlType.checkList:
-      case ControlType.checkListObject:
-        tableData$ = this.metaInfoService.getCheckListData(field, data);
-        break;
-      case ControlType.table:
-        tableData$ = this.metaInfoService.getTableData(field, data);
-        break;
-      case ControlType.tableMasterDetail:
-        const metaInfoSelector = field.lookup && field.lookup.metaInfoSelector;
-        tableData$ = this.metaInfoService.getJoinedTableData(this.parameter.metaInfoSelector, metaInfoSelector, data);
-        break;
-    }
-    return tableData$;
-  }
-
   private setupLookupControls(metaInfoSelector: string, tableData$: BehaviorSubject<any[]>, field: GenericFieldInfo,
     value: string | number | number[] | any[], control: FormControl) {
     if (metaInfoSelector && tableData$) {
@@ -171,13 +224,19 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
       switch (field.type) {
         case ControlType.selectMulti:
           tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-            this.metaInfoService.setLookupArrayId(field, listData, value as any[], control);
+            this.crudObjectsService.setLookupArrayId(field, listData, value as any[], control);
           });
           break;
 
         case ControlType.selectMultiObject:
           tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-            this.metaInfoService.setLookupArrayValue(field, listData, value as any[], control);
+            this.crudObjectsService.setLookupArrayValue(field, listData, value as any[], control);
+          });
+          break;
+
+        case ControlType.selectMultiObjectJoin:
+          tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
+            this.crudObjectsService.setLookupJoinArrayValue(field, listData, value as any[], control);
           });
           break;
 
@@ -185,19 +244,21 @@ export class CrudFieldsComponent implements OnInit, OnDestroy {
         case ControlType.checkList:
         case ControlType.tableMasterDetail:
           tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-            this.metaInfoService.setLookupValue(field, listData, value, control);
+            this.crudObjectsService.setLookupValue(field, listData, value, control);
           });
           break;
 
         case ControlType.checkListObject:
+        case ControlType.checkListObjectJoin:
           tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-            this.metaInfoService.setLookupArrayValue(field, listData, value as any[], control);
+            this.crudObjectsService.setLookupArrayValue(field, listData, value as any[], control);
           });
           break;
 
         case ControlType.table:
+        case ControlType.tableJoin:
           tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-            this.metaInfoService.setLookupObjectValue(field, listData, control);
+            this.crudObjectsService.setLookupObjectValue(field, listData, control);
           });
           break;
       }

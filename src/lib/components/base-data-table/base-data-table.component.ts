@@ -9,9 +9,10 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { CrudTableHeaderComponent } from '../crud-table-header/crud-table-header.component';
 import { MetaInfo, GenericFieldInfo, ControlType, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
-import { MetaInfoService } from '../../services/meta-info.service';
+import { CrudObjectsService } from '../../services/crud-objects.service';
 import { CrudTableResult } from '../../models/crud.model';
 import { CrudConfig } from '../../models/crud-config';
+import { MetaInfoService } from '../../services/meta-info.service';
 
 @Component({
   selector: 'ngx-base-data-table',
@@ -40,10 +41,12 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
 
   constructor(private route: ActivatedRoute,
     private crudService: CrudService,
-    private metaInfoService: MetaInfoService,
+    private crudObjectsService: CrudObjectsService,
     private fb: FormBuilder,
     private cdref: ChangeDetectorRef,
-    private crudConfig: CrudConfig) {
+    private crudConfig: CrudConfig,
+    private metaInfoService: MetaInfoService) {
+
     this.metaInfoSelector = _MetaInfoTag.Undefined;
     this.scrollModeTableEnabled = this.crudConfig?.scrollModeBaseDataTable === ScrollMode.Table || false;
     this.scrollModeContentEnabled = this.crudConfig?.scrollModeBaseDataTable === ScrollMode.Content || false;
@@ -105,7 +108,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
   }
 
   public displayLookupListValue(field: GenericFieldInfo, item: any): string {
-    return (item && field?.lookup?.getLookupValue(item)) || '';
+    return (item && field?.lookup?.getLookupValue(item, [])) || '';
   }
 
   public onRefreshTableData(tableData: CrudTableResult): void {

@@ -37,6 +37,13 @@ export class CrudService {
     );
   }
 
+  public getValue(metaInfoSelector: MetaInfoTag, lookupId: any): any {
+    const data = this.cacheService.getCachedTable(metaInfoSelector);
+    const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
+    const primaryKeyName = metaInfo?.fields && this.metaInfoBaseService.getPrimaryKeyName(metaInfo.fields);
+    return primaryKeyName && data.find((item) => item[primaryKeyName] === lookupId);
+  }
+
   public get(parentMetaInfoSelector: MetaInfoTag, metaInfoSelector: MetaInfoTag, data: any, parentData: any): Observable<any> {
     const metaInfo = this.metaInfoBaseService.getMetaInfoInstance(metaInfoSelector);
     if (!metaInfo) {

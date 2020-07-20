@@ -14,6 +14,7 @@ export * from './lib/interfaces/icache.service';
 export * from './lib/interfaces/iwebsocket.service';
 
 export * from './lib/services/cache.service';
+export * from './lib/services/crud-objects.service';
 export * from './lib/services/crud.service';
 
 export * from './lib/components/base-data-table/base-data-table.component';

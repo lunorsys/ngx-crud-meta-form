@@ -13,9 +13,10 @@ import { CrudFieldsComponent } from '../crud-fields/crud-fields.component';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { GenericFieldInfo, MetaInfo, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
 import { CrudService } from '../../services/crud.service';
-import { MetaInfoService } from '../../services/meta-info.service';
+import { CrudObjectsService } from '../../services/crud-objects.service';
 import { MetaInfoBaseService } from '../../services/meta-info-base.service';
 import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services/snack-bar.service';
+import { MetaInfoService } from '../../services/meta-info.service';
 
 export class CrudFormResult {
   data: any[];
@@ -57,10 +58,13 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     private crudService: CrudService,
     @Inject(MAT_DIALOG_DATA) public crudFormParameter: CrudFormParameter,
     private cdref: ChangeDetectorRef,
-    private metaInfoService: MetaInfoService,
+    private crudObjectsService: CrudObjectsService,
     private metaInfoBaseService: MetaInfoBaseService,
     private snackBarService: SnackBarService,
-    private changeDetection: ChangeDetectorRef) {
+    private changeDetection: ChangeDetectorRef,
+    private metaInfoService: MetaInfoService) {
+
+    this.metaInfoSelector = this.getMetaInfoSelector(0);
   }
 
   ngOnInit(): void {
@@ -162,7 +166,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           }
         }, error => {
           const parameter: SnackBarParameter = {
-            message: `Error while update: ${error} `,
+            message: `Error while update: ${error}`,
             type: SnackBarType.warn
           };
 
@@ -172,7 +176,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  public retrieveModelData(): any {
+  private retrieveModelData(): any {
     const form = this.formMap.get(this.crudFormParameter.metaInfoSelector);
     let modelData = {};
     if (form.valid) {
@@ -199,7 +203,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
     }
   }
 
-  private mapModelData(formData: any, originData: any[], parentData: any[]): any {
+  private mapModelData(formData: any, data: any[], parentData: any[]): any {
     if (!this.updateFields || !this.crudFieldsComponents) {
       return null;
     }
@@ -216,30 +220,31 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           break;
         case ControlType.select:
         case ControlType.selectAutocomplete:
-          saveData[field.name] = this.metaInfoService.getLookupKey(field, fieldValue || {});
+          saveData[field.name] = this.crudObjectsService.getLookupKey(field, fieldValue || {});
           break;
         case ControlType.selectMulti:
-          saveData[field.name] = this.metaInfoService.getLookupKeyArray(field, fieldValue || []);
+          saveData[field.name] = this.crudObjectsService.getLookupKeyArray(field, fieldValue || []);
           break;
-        case ControlType.selectMultiObject:
-          saveData[field.name] = this.metaInfoService.getLookupObjectArray(field, fieldValue, fieldValue);
+        case ControlType.selectMultiObject:  // actual not used
+          saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, fieldValue);
+          break;
+        case ControlType.selectMultiObjectJoin:
+          saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, fieldValue);
           break;
         case ControlType.referenceByParentData:
           saveData[field.name] = parentData[field?.parentKeyName || field.name];
           break;
         case ControlType.checkList:
-          this.crudFieldsComponents.forEach((crudfield) => {
-            if (crudfield.field.name === field.name) {
-              saveData[field.name] = this.metaInfoService.getLookupKeyArray(field, crudfield.getSelectionList());
-            }
-          });
+          {
+            const crudField = this.crudFieldsComponents.find((fieldComponent) => fieldComponent.field.name === field.name);
+            saveData[field.name] = this.crudObjectsService.getLookupKeyArray(field, crudField.getSelectionList());
+          }
           break;
         case ControlType.checkListObject:
-          this.crudFieldsComponents.forEach((crudfield) => {
-            if (crudfield.field.name === field.name) {
-              saveData[field.name] = this.metaInfoService.getLookupObjectArray(field, originData, crudfield.getSelectionList());
-            }
-          });
+          {
+            const crudField = this.crudFieldsComponents.find((fieldComponent) => fieldComponent.field.name === field.name);
+            saveData[field.name] = this.crudObjectsService.getLookupObjectArray(field, data, crudField.getSelectionList());
+          }
           break;
         case ControlType.tableMasterDetail:
           // No result expected, because it is already saved!
@@ -247,9 +252,9 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
           saveData[field.name] = null;
           break;
         case ControlType.table:
-          saveData[field.name] = originData[field.name];
+        case ControlType.tableJoin:
+          saveData[field.name] = data[field.name];
           break;
-
         default:
           saveData[field.name] = fieldValue;
           break;
@@ -300,7 +305,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
       const fieldWriteable = !field?.readonly && isEnabled && !field.isPrimaryKey && editAllowed;
       return fieldWriteable;
     });
-    console.log('\'isSaveButtonDisabled\' was called');
+    // console.log('\'isSaveButtonDisabled\' was called');
     return this.tabIndex > 0 || form.invalid || isDisabled;
   }
 
@@ -318,7 +323,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public displayDefaultLookupLine(): string {
-    return MetaInfoService.defaultSelectDisplayLine;
+    return CrudObjectsService.defaultSelectDisplayLine;
   }
 
   public getFlexParameter(field: GenericFieldInfo): string {
@@ -367,13 +372,13 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
 
   public hasFormChanged(): boolean {
     return this.dataready && this.tabIndex === 0 &&
-      !this.metaInfoService.isEqualModel(this.metaInfo, this.oldModelData, this.retrieveModelData());
+      !this.crudObjectsService.isEqualModel(this.metaInfo, this.oldModelData, this.retrieveModelData());
   }
 
   private selectNewTabPage(index: number): void {
     const pageSelector = this.getMetaInfoSelector(index);
     if (!this.lookupListDataMap.get(pageSelector)) {
-      const detailData$ = this.metaInfoService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
+      const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
       this.lookupListDataMap.set(pageSelector, detailData$);
     }
   }
@@ -383,11 +388,11 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
   }
 
   public onRefreshTableData(crudTableResult: CrudTableResult): void {
-    this.crudFormParameter.data[crudTableResult.field.name] = crudTableResult.data;
+    // this.crudFormParameter.data[crudTableResult.field.name] = crudTableResult.data;
     if (this.tabIndex > 0) {
       const pageSelector = this.getMetaInfoSelector(this.tabIndex);
       if (pageSelector) {
-        const detailData$ = this.metaInfoService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
+        const detailData$ = this.crudObjectsService.getJoinedTableData(this.getMetaInfoSelector(0), pageSelector, this.crudFormParameter.data);
         this.lookupListDataMap.set(pageSelector, detailData$);
       }
     } else {
@@ -396,6 +401,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, AfterContentChecked
         this.lookupListDataMap.set(metaInfoSelector, new BehaviorSubject<any[]>(crudTableResult.data));
       }
     }
+    this.changeDetection.markForCheck();
   }
 
   private updateControls(modelData: any): void {
