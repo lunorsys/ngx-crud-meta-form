@@ -123,7 +123,7 @@ import { CrudFormComponent } from './components/crud-form/crud-form.component';
   entryComponents: [],
 })
 export class NgxCrudMetaFormModule {
-  public static forRoot(config: CrudConfig): ModuleWithProviders {
+  public static forRoot(config: CrudConfig): ModuleWithProviders<NgxCrudMetaFormModule> {
     return {
       ngModule: NgxCrudMetaFormModule,
       providers: [{

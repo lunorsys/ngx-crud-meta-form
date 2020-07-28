@@ -57,15 +57,15 @@ export class SnackBarService implements OnDestroy {
   private buildSnackBar(snackBarParameter: SnackBarParameter) {
     const { message, duration, type } = snackBarParameter;
     const action = snackBarParameter.action === false ? null : 'Ok';
-    const config = new MatSnackBarConfig;
+    const config = new MatSnackBarConfig();
 
     config.duration = duration || 6000;
     config.panelClass = type;
 
     const snackBarData: SnackBarData = {
-      message: message,
-      action: action,
-      config: config
+      message,
+      action,
+      config
     };
 
     this.snackBars.push(snackBarData);
