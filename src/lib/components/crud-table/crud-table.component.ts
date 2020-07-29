@@ -382,11 +382,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       this.metaTableInfo.fields.forEach((field) => {
         if (field.isTableColumn && (field.type === ControlType.string || field.type === ControlType.number)) {
           let fieldValue = data[field.name];
-          if (field.type === ControlType.string) {
-            fieldValue = fieldValue && fieldValue.toLowerCase();
-          } else {
-            fieldValue = fieldValue && fieldValue.toString();
-          }
+          fieldValue = (field.type === ControlType.string) ? fieldValue?.toLowerCase() : fieldValue?.toString();
           if (fieldValue) {
             filterDestination.push(fieldValue);
           }

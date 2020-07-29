@@ -96,7 +96,7 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
           if (this.metaInfo.fieldFilterInfo) {
             this.fillLookupListData(this.metaInfoSelector);
           }
-          this.prepareFilter();
+          // this.prepareFilter();
           this.prepareListData();
         } else {
           this.isLoadingResults = of(false);
@@ -120,20 +120,20 @@ export class BaseDataTableComponent implements OnInit, OnDestroy, AfterContentCh
     });
   }
 
-  private prepareFilter() {
-    this.fieldFilter = new GenericFieldInfo();
-    if (this.metaInfo.fieldFilterInfo && this.metaInfo.fieldFilterInfo.fields && this.metaInfo.fieldFilterInfo.fields.length) {
-      this.fieldFilter = this.metaInfo.fieldFilterInfo.fields[0];
-      if (this.fieldFilter.lookup && this.filterListData$) {
-        this.form.addControl(this.fieldFilter.name, new FormControl(''));
-        this.autocompleteList = this.form.get('autocomplete').valueChanges
-          .pipe(
-            startWith(''),
-            map(item => this.getAutocompleteList(item))
-          );
-      }
-    }
-  }
+  // private prepareFilter() {
+  //   this.fieldFilter = new GenericFieldInfo();
+  //   if (this.metaInfo.fieldFilterInfo && this.metaInfo.fieldFilterInfo.fields && this.metaInfo.fieldFilterInfo.fields.length) {
+  //     this.fieldFilter = this.metaInfo.fieldFilterInfo.fields[0];
+  //     if (this.fieldFilter.lookup && this.filterListData$) {
+  //       this.form.addControl(this.fieldFilter.name, new FormControl(''));
+  //       this.autocompleteList = this.form.get('autocomplete').valueChanges
+  //         .pipe(
+  //           startWith(''),
+  //           map(item => this.getAutocompleteList(item))
+  //         );
+  //     }
+  //   }
+  // }
 
   public applyFilter(filterValue: string) {
     this.filter = filterValue;
