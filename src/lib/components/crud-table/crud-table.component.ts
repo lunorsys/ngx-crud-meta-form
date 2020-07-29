@@ -278,10 +278,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     const filteredData = this.dataSource.data.filter((item) => data !== item);
     this.listData = filteredData;
     if (this.sourceField) {
-      this.refreshTableData.next(<CrudTableResult>{
+      this.refreshTableData.next({
         data: filteredData,
         field: this.sourceField
-      });
+      } as CrudTableResult);
     }
     return filteredData;
   }
@@ -296,10 +296,10 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
           this.dataSource.data = this.listData;
         }
         this.setupSort();
-        this.refreshTableData.next(<CrudTableResult>{
+        this.refreshTableData.next({
           data: this.dataSource.data,
           field: this.sourceField
-        });
+        } as CrudTableResult);
 
         this.isLoadingResults = true;
       }
@@ -309,7 +309,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
   private openCrudForm(data: any): MatDialogRef<CrudFormComponent, CrudFormResult> {
     const matConfig: MatDialogConfig = {
       data: {
-        data: data,
+        data,
         metaInfoSelector: this.metaInfoSelector,
         isFormLevel: this.isFormLevel,
         parentData: this.parentData,
