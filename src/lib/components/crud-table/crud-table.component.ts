@@ -389,7 +389,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
         }
       });
 
-      return filterDestination.some((item) => item.startsWith(filter));
+      return filterDestination.some((item) => item.includes(filter));
     };
   }
 }
