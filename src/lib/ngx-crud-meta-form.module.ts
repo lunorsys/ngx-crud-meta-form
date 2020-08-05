@@ -1,4 +1,4 @@
-import { NgModule, ModuleWithProviders } from '@angular/core';
+import { NgModule, ModuleWithProviders, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { FlexLayoutModule } from '@angular/flex-layout';
@@ -16,7 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MAT_DATE_LOCALE, DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -62,13 +62,25 @@ import { CrudFieldPlaceholderComponent } from './components/crud-fields/crud-fie
 import { CrudFieldTableComponent } from './components/crud-fields/crud-field-table/crud-field-table.component';
 import { MessageDialogComponent } from './components/message-dialog/message-dialog.component';
 import { MessageDialogService } from './services/message-dialog.service';
+import { LocalConvertService } from './services/locale-convert.service';
+import { CrudFieldDateComponent } from './components/crud-fields/crud-field-date/crud-field-date.component';
+import { CrudFieldDatetimeComponent } from './components/crud-fields/crud-field-datetime/crud-field-datetime.component';
+import { NgxMatDatetimePickerModule, NgxMatTimepickerModule, NgxMatNativeDateModule, NgxMatDateAdapter, NGX_MAT_DATE_FORMATS } from '@angular-material-components/datetime-picker';
+import { NgxMatMomentModule } from '@angular-material-components/moment-adapter';
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+import { LocalizeService } from './services/localize.service';
+import { CrudDatetimeAdapter, CRUD_MOMENT_DATETIME_FORMATS } from './adapters/crud-moment-datetime-adapter';
+import { CUSTOM_MOMENT_DATE_FORMATS, CrudDateAdapter } from './adapters/crud-moment-date-adapter';
 
 @NgModule({
   declarations: [
     BaseDataTableComponent,
+    // CrudFieldBaseComponent,
     CrudFieldCheckboxComponent,
     CrudFieldChecklistComponent,
     CrudFieldChecklistObjectComponent,
+    CrudFieldDateComponent,
+    CrudFieldDatetimeComponent,
     CrudFieldNumberComponent,
     CrudFieldPlaceholderComponent,
     CrudFieldSelectComponent,
@@ -123,6 +135,10 @@ import { MessageDialogService } from './services/message-dialog.service';
     MatToolbarModule,
     MatTooltipModule,
     MatTreeModule,
+    NgxMatDatetimePickerModule,
+    NgxMatTimepickerModule,
+    NgxMatNativeDateModule,
+    NgxMatMomentModule,
     PersistenceModule,
     ReactiveFormsModule,
     PersistenceModule,
@@ -134,12 +150,30 @@ import { MessageDialogService } from './services/message-dialog.service';
     CrudLocalizeService,
     CrudObjectsService,
     CrudService,
+    LocalConvertService,
+    LocalizeService,
     MessageDialogService,
+    {
+      provide: NgxMatDateAdapter,
+      useClass: CrudDatetimeAdapter,
+      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS, CrudConfig]
+    },
+    {
+      provide: NGX_MAT_DATE_FORMATS,
+      useValue: CRUD_MOMENT_DATETIME_FORMATS
+    },
+    {
+      provide: DateAdapter,
+      useClass: CrudDateAdapter, // MomentDateAdapter,
+      deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]
+    },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: CUSTOM_MOMENT_DATE_FORMATS
+    },
     // {
-    //   provide: APP_INITIALIZER,
-    //   multi: true,
-    //   useFactory: initializeGlobalizeLibrary(),
-    //   deps: [CrudLocalizeService],
+    //   provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS,
+    //   useValue: CustomMomentDateAdapterOptions
     // }
   ],
   exports: [
@@ -150,19 +184,28 @@ import { MessageDialogService } from './services/message-dialog.service';
   ],
   entryComponents: [],
 })
+
 export class NgxCrudMetaFormModule {
   public static forRoot(config: CrudConfig): ModuleWithProviders<NgxCrudMetaFormModule> {
     return {
       ngModule: NgxCrudMetaFormModule,
-      providers: [{
-        provide: CrudConfig,
-        useValue: config
-      }]
+      providers: [
+        {
+          provide: CrudConfig,
+          useValue: config
+        },
+        {
+          provide: APP_INITIALIZER,
+          multi: true,
+          useFactory: initializeGlobalizeLibrary(),
+          deps: [CrudLocalizeService, LOCALE_ID],
+        }
+      ]
     };
   }
 }
 
-// export function initializeGlobalizeLibrary() {
-//   const setupFct = (crudLocalizeService: CrudLocalizeService) => crudLocalizeService.initializeGlobalizeLibrary();
-//   return setupFct;
-// }
+export function initializeGlobalizeLibrary() {
+  const setupFct = (crudLocalizeService: CrudLocalizeService) => crudLocalizeService.initializeGlobalizeLibrary();
+  return setupFct;
+}

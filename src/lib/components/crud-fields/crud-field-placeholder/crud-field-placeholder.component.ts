@@ -5,6 +5,7 @@ import { CrudObjectsService } from '../../../services/crud-objects.service';
 import { CrudFormParameter } from '../../../models/crud.model';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { GenericFieldInfo } from '../../../meta-info/meta-info.model';
+import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
   selector: 'ngx-crud-placeholder',
@@ -19,8 +20,9 @@ export class CrudFieldPlaceholderComponent extends CrudFieldBaseComponent implem
     public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
     @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig
   ) {
-    super(metaInfoService, crudObjectsService, dialogParameter);
+    super(metaInfoService, crudObjectsService, dialogParameter, crudConfig);
   }
 
   ngInit() {

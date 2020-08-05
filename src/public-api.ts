@@ -17,6 +17,8 @@ export * from './lib/services/cache.service';
 export * from './lib/services/crud-objects.service';
 export * from './lib/services/crud.service';
 
+export * from './lib/validators/number-validator';
+
 export * from './lib/components/base-data-table/base-data-table.component';
 export * from './lib/components/crud-fields/crud-fields.component';
 export * from './lib/components/crud-form/crud-form.component';

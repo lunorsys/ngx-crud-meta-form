@@ -1,48 +1,56 @@
 <ngx-crud-styles></ngx-crud-styles>
 <ng-container [formGroup]="fieldForm" [ngSwitch]="field.type">
-  <ngx-crud-field-string #stringComponent *ngSwitchCase="ControlType.string" [fieldForm]="fieldForm" [field]="field"
+  <ngx-crud-field-string #stringComponent *ngSwitchCase="ControlType.String" [fieldForm]="fieldForm" [field]="field"
     [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-string>
 
-  <ngx-crud-field-number #numberComponent *ngSwitchCase="ControlType.number" [fieldForm]="fieldForm" [field]="field"
+  <ngx-crud-field-number #numberComponent *ngSwitchCase="ControlType.Number" [fieldForm]="fieldForm" [field]="field"
     [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-number>
 
-  <ngx-crud-field-checkbox #checkboxComponent *ngSwitchCase="ControlType.boolean" [fieldForm]="fieldForm"
+  <ngx-crud-field-checkbox #checkboxComponent *ngSwitchCase="ControlType.Boolean" [fieldForm]="fieldForm"
     [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-checkbox>
 
-  <ngx-crud-field-select #selectComponent *ngSwitchCase="ControlType.select" [fieldForm]="fieldForm" [field]="field"
+  <ngx-crud-field-select #selectComponent *ngSwitchCase="ControlType.Select" [fieldForm]="fieldForm" [field]="field"
     [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-select>
 
-  <ngx-crud-field-select-multi #selectMultiComponent *ngSwitchCase="ControlType.selectMulti" [fieldForm]="fieldForm"
+  <ngx-crud-field-select-multi #selectMultiComponent *ngSwitchCase="ControlType.SelectMulti" [fieldForm]="fieldForm"
     [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-select-multi>
 
-  <ngx-crud-field-select-multi-object #selectMultiComponent *ngSwitchCase="ControlType.selectMultiObject"
+  <ngx-crud-field-select-multi-object #selectMultiComponent *ngSwitchCase="ControlType.SelectMultiObject"
     [fieldForm]="fieldForm" [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-select-multi-object>
 
-  <ngx-crud-field-checklist-object #checklistObjectComponent *ngSwitchCase="ControlType.checkListObject"
+  <ngx-crud-field-checklist-object #checklistObjectComponent *ngSwitchCase="ControlType.CheckListObject"
     [fieldForm]="fieldForm" [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-checklist-object>
 
-  <ngx-crud-field-checklist #checklistComponent *ngSwitchCase="ControlType.checkList" [fieldForm]="fieldForm"
+  <ngx-crud-field-checklist #checklistComponent *ngSwitchCase="ControlType.CheckList" [fieldForm]="fieldForm"
     [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-checklist>
 
-  <ngx-crud-field-table-master-detail #tableMasterDetailComponent *ngSwitchCase="ControlType.tableMasterDetail"
+  <ngx-crud-field-table-master-detail #tableMasterDetailComponent *ngSwitchCase="ControlType.TableMasterDetail"
     [fieldForm]="fieldForm" [metaInfoSelector]="field?.lookup?.metaInfoSelector" [field]="field"
     (refreshTableData)="this.onRefreshTableData($event)" [parentData]="dialogParameter.data"
     [parentMetaInfoSelector]="metaInfoSelector">
   </ngx-crud-field-table-master-detail>
 
-  <ngx-crud-field-table #tableComponent *ngSwitchCase="ControlType.table" [fieldForm]="fieldForm"
+  <!-- <ngx-crud-field-table #tableComponent *ngSwitchCase="ControlType.Table" [fieldForm]="fieldForm"
     [metaInfoSelector]="field?.lookup?.metaInfoSelector" [field]="field"
     (refreshTableData)="this.onRefreshTableData($event)" [parentData]="dialogParameter.data"
     [parentMetaInfoSelector]="metaInfoSelector">
-  </ngx-crud-field-table>
+  </ngx-crud-field-table> -->
+
+  <ngx-crud-field-date #checklistComponent *ngSwitchCase="ControlType.Date" [fieldForm]="fieldForm" [field]="field"
+    [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-date>
+
+  <ngx-crud-field-datetime #checklistComponent *ngSwitchCase="ControlType.Datetime" [fieldForm]="fieldForm"
+    [field]="field" [data]="dialogParameter.data" [metaInfoSelector]="metaInfoSelector">
+  </ngx-crud-field-datetime>
 
   <!--
   <div *ngSwitchCase="field.type === ControlType.checkListObjectJoin" fxLayout="column" fxFlex="1 1 100%" class="lookupmulti">

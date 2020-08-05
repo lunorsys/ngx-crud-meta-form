@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MetaInfoTag, MetaInfo } from '../meta-info/meta-info.model';
 import { ScrollMode } from './crud.model';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 @Injectable({
   providedIn: 'root'
@@ -8,7 +9,6 @@ import { ScrollMode } from './crud.model';
   public metaInfoDefinitions: Map<MetaInfoTag, MetaInfo>;
   public baseUrl: string;
   public scrollModeBaseDataTable: ScrollMode;
-
-  constructor() {
-  }
+  public hasAmPmSupport?: boolean;
+  public formFieldAppeareance?: MatFormFieldAppearance;
 }

@@ -1,7 +1,6 @@
 <div fxLayout="column" fxFlex="1 1 100%">
   <h4>{{field?.label}}</h4>
   <ngx-crud-table fxfill [listData]="tableData$ | async" [metaInfoSelector]="field?.lookup?.metaInfoSelector"
-    [field]="field" (refreshTableData)="refreshTableData" [parentData]="dialogParameter.data"
-    [parentMetaInfoSelector]="metaInfoSelector">
+    [field]="field" [parentData]="dialogParameter.data" [parentMetaInfoSelector]="metaInfoSelector">
   </ngx-crud-table>
 </div>

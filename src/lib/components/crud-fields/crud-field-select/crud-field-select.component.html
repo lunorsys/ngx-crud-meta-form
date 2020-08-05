@@ -1,4 +1,4 @@
-<mat-form-field fxLayout="row" fxFill fxLayoutAlign="start start">
+<mat-form-field [appearance]="appearance" fxLayout="row" fxFill fxLayoutAlign="start start">
   <mat-label>{{field.label}}</mat-label>
   <mat-select placeholder="{{field.label}}" [formControl]="control" [required]="field.required">
     <mat-option *ngFor="let item of tableData$ | async" [value]="item">

@@ -1,0 +1,7 @@
+<mat-form-field [appearance]="appearance">
+  <mat-label>Choose a date</mat-label>
+  <input matInput [matDatepicker]="dPicker" [formControl]="control" [required]="field.required">
+  <mat-error>Please enter a valid short date value</mat-error>
+  <mat-datepicker-toggle matSuffix [for]="dPicker"></mat-datepicker-toggle>
+  <mat-datepicker #dPicker></mat-datepicker>
+</mat-form-field>

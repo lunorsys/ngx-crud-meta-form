@@ -90,22 +90,22 @@ export class MetaInfoService {
 
   public isFieldForLookup(field: GenericFieldInfo) {
     return [
-      ControlType.selectAutocomplete,
-      ControlType.checkList,
-      ControlType.checkListObject,
-      ControlType.select,
-      ControlType.selectMulti,
-      ControlType.selectMultiObject,
-      ControlType.table,
-      ControlType.tableMasterDetail
+      ControlType.SelectAutocomplete,
+      ControlType.CheckList,
+      ControlType.CheckListObject,
+      ControlType.Select,
+      ControlType.SelectMulti,
+      ControlType.SelectMultiObject,
+      ControlType.Table,
+      ControlType.TableMasterDetail
     ].includes(field.type);
   }
 
   public isFieldForJoin(field: GenericFieldInfo) {
     return [
-      ControlType.checkListObjectJoin,
-      ControlType.selectMultiObjectJoin,
-      ControlType.tableJoin,
+      ControlType.CheckListObjectJoin,
+      ControlType.SelectMultiObjectJoin,
+      ControlType.TableJoin,
     ].includes(field.type);
   }
 
@@ -166,6 +166,6 @@ export class MetaInfoService {
   }
 
   public hasMasterDetailChildTable(metaInfo: MetaInfo): boolean {
-    return metaInfo.fields.some((control) => control.type === ControlType.tableMasterDetail);
+    return metaInfo.fields.some((control) => control.type === ControlType.TableMasterDetail);
   }
 }

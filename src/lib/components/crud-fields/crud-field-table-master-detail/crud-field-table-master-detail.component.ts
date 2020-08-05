@@ -10,6 +10,7 @@ import { MatSelectionList } from '@angular/material/list';
 import { CrudObjectsService } from '../../../services/crud-objects.service';
 import { CrudFormParameter, CrudTableResult } from '../../../models/crud.model';
 import { CrudFieldBaseComponent } from '../crud-field-base';
+import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
   selector: 'ngx-crud-field-table-master-detail',
@@ -65,9 +66,10 @@ export class CrudFieldTableMasterDetailComponent extends CrudFieldBaseComponent 
     public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
     @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig,
     private changeDetection: ChangeDetectorRef,
   ) {
-    super(metaInfoService, crudObjectsService, dialogParameter);
+    super(metaInfoService, crudObjectsService, dialogParameter, crudConfig);
   }
 
   ngOnInit(): void {

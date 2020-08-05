@@ -8,6 +8,7 @@ import { MetaInfoTag, GenericFieldInfo } from '../../../meta-info/meta-info.mode
 import { FormGroup } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
+import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
   selector: 'ngx-crud-field-select-multi-object',
@@ -26,9 +27,10 @@ export class CrudFieldSelectMultiObjectComponent extends CrudFieldBaseComponent 
   constructor(
     public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
-    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter
+    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig
   ) {
-    super(metaInfoService, crudObjectsService, dialogParameter);
+    super(metaInfoService, crudObjectsService, dialogParameter, crudConfig);
   }
 
   ngOnInit(): void {

@@ -23,22 +23,21 @@ export class CrudObjectsService implements OnDestroy {
     @Inject(CACHE_TOKEN) private cacheService: ICacheService,
     private injector: Injector
   ) {
-    CrudObjectsService.injector = this.injector;
     this.metaInfoDefinitions = this.crudConfig.metaInfoDefinitions;
     this.numberFormatter = Globalize.numberFormatter();
   }
 
-  static injector: Injector;
+  // static injector: Injector;
   public static defaultSelectDisplayLine = '-- please select --';
 
   private ngUnsubscribe = new Subject();
   private numberFormatter: (value: number) => string;
   private metaInfoDefinitions: Map<MetaInfoTag, MetaInfo>;
 
-  public static getLookupData(metaInfoSelector: MetaInfoTag, lookupId: number): any {
-    const crudService = CrudObjectsService.injector.get(CrudService);
-    return crudService.getValue(metaInfoSelector, lookupId);
-  }
+  // public static getLookupData(metaInfoSelector: MetaInfoTag, lookupId: number): any {
+  //   const crudService = CrudObjectsService.injector.get(CrudService);
+  //   return crudService.getValue(metaInfoSelector, lookupId);
+  // }
 
   ngOnDestroy() {
     this.ngUnsubscribe.next();
@@ -252,12 +251,12 @@ export class CrudObjectsService implements OnDestroy {
       return null;
     }
     const value = data[field.name];
-    if (value === null || value === undefined || (field.type === ControlType.number && isNaN(value))) {
+    if (value === null || value === undefined || (field.type === ControlType.Number && isNaN(value))) {
       return '';
     }
 
     let numberValue: number;
-    if (field.type === ControlType.number) {
+    if (field.type === ControlType.Number) {
       if (typeof value === 'string') {
         numberValue = Number(value);
       } else {
@@ -304,17 +303,17 @@ export class CrudObjectsService implements OnDestroy {
           let mapping = '';
           const parentFieldName = field.parentKeyName ?? field.name;
           switch (field.type) {
-            case ControlType.referenceByParentData:
-            case ControlType.selectMultiObjectJoin:
+            case ControlType.ReferenceByParentData:
+            case ControlType.SelectMultiObjectJoin:
               mapping = data[parentFieldName];
               break;
 
-            case ControlType.select:
+            case ControlType.Select:
               mapping = assocoationItem[field?.lookup?.lookupKeyName ?? field.name];
               break;
 
             default:
-              if (lookupField.type === ControlType.selectMultiObject) {
+              if (lookupField.type === ControlType.SelectMultiObject) {
                 if (field.isPrimaryKey) {
                   mapping = data[lookupField.name]?.find((lookupFieldItem: any) => lookupFieldItem[field.name])?.[field.name];
                 } else {

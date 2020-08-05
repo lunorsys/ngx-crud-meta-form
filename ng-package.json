@@ -6,6 +6,10 @@
     "umdModuleIds": {
       "@code-art/angular-globalize/schematics/cultures": "@code-art/angular-globalize/schematics/cultures",
       "@code-art/angular-globalize": "@code-art/angular-globalize",
+      "@angular/cdk": "@angular/cdk",
+      "@angular/core": "@angular/core",
+      "@angular-material-components/datetime-picker": "@angular-material-components/datetime-picker",
+      "@angular-material-components/moment-adapter": "@angular-material-components/moment-adapter",
       "angular-persistence": "angular-persistence",
       "cldr-data": "cldr-data",
       "clds": "cldr",

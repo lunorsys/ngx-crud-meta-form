@@ -6,13 +6,13 @@
   <!-- array of fields -->
   <ng-container matColumnDef="{{field.name}}" *ngFor="let field of metaTableInfo?.fields">
     <mat-header-cell fxFlex="{{getflexParameter(field)}}" mat-sort-header fxLayout="row"
-      [class.number-field]="field.type === ControlType.number"
-      fxLayoutAlign="{{field.type === ControlType.number ? 'end': 'start'}}" *matHeaderCellDef disableClear="true">
+      [class.number-field]="field.type === ControlType.Number"
+      fxLayoutAlign="{{field.type === ControlType.Number ? 'end': 'start'}}" *matHeaderCellDef disableClear="true">
       <span>{{field.label}}</span>
     </mat-header-cell>
     <mat-cell fxFlex="{{getflexParameter(field)}}" fxLayout="row"
-      [class.number-field]="field.type === ControlType.number"
-      fxLayoutAlign="{{field.type === ControlType.number ? 'end center': 'start center'}}" *matCellDef="let row">
+      [class.number-field]="field.type === ControlType.Number"
+      fxLayoutAlign="{{field.type === ControlType.Number ? 'end center': 'start center'}}" *matCellDef="let row">
       <span>{{getFieldValue(row, field)}}</span>
     </mat-cell>
   </ng-container>

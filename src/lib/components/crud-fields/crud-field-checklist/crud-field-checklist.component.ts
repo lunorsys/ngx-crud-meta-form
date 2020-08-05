@@ -10,6 +10,7 @@ import { MatSelectionList } from '@angular/material/list';
 import { CrudObjectsService } from '../../../services/crud-objects.service';
 import { CrudFormParameter } from '../../../models/crud.model';
 import { CrudFieldBaseComponent } from '../crud-field-base';
+import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
   selector: 'ngx-crud-field-checklist',
@@ -29,9 +30,10 @@ export class CrudFieldChecklistComponent extends CrudFieldBaseComponent implemen
   constructor(
     public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
-    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter
+    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig
   ) {
-    super(metaInfoService, crudObjectsService, dialogParameter);
+    super(metaInfoService, crudObjectsService, dialogParameter, crudConfig);
   }
 
   ngOnInit(): void {

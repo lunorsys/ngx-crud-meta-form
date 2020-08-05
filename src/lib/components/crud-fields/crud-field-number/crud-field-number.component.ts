@@ -7,6 +7,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import Globalize from 'globalize/dist/globalize';
 import { MetaInfoTag, GenericFieldInfo } from '../../../meta-info/meta-info.model';
 import { FormGroup } from '@angular/forms';
+import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
   selector: 'ngx-crud-field-number',
@@ -25,9 +26,10 @@ export class CrudFieldNumberComponent extends CrudFieldBaseComponent implements 
   constructor(
     public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
-    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter
+    @Inject(MAT_DIALOG_DATA) public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig
   ) {
-    super(metaInfoService, crudObjectsService, dialogParameter);
+    super(metaInfoService, crudObjectsService, dialogParameter, crudConfig);
   }
 
   ngOnInit(): void {

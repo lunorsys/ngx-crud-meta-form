@@ -1,14 +1,17 @@
 import { MessageDialogService } from './../../services/message-dialog.service';
 import { ControlType } from './../../meta-info/meta-info.model';
+import type { QueryList } from '@angular/core';
 import {
   Component, OnInit, Inject, OnDestroy, ChangeDetectorRef, ViewChildren,
-  QueryList, ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectionStrategy, AfterContentChecked
+  ViewChild, AfterViewInit, Output, EventEmitter, ChangeDetectionStrategy, AfterContentChecked
 } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import type { FormGroup } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { Subject, Observable, BehaviorSubject, of } from 'rxjs';
 import { takeUntil, share } from 'rxjs/operators';
-import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import type { MatTabGroup } from '@angular/material/tabs';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { CrudFieldsComponent } from '../crud-fields/crud-fields.component';
 import { CrudTableResult, CrudFormParameter } from '../../models/crud.model';
 import { GenericFieldInfo, MetaInfo, MetaInfoTag, _MetaInfoTag } from '../../meta-info/meta-info.model';
@@ -196,7 +199,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, OnDestroy, AfterVie
     if (form.valid) {
       this.crudFieldsComponents.forEach((crudField) => {
         const field = crudField.field;
-        if (field.type === ControlType.referenceByParentData) {
+        if (field.type === ControlType.ReferenceByParentData) {
           saveData[field.name] = this.crudFormParameter.parentData[field.name];
         } else {
           saveData[field.name] = crudField.getControlValue();
@@ -313,7 +316,7 @@ export class CrudFormComponent implements OnInit, OnDestroy, OnDestroy, AfterVie
   }
 
   private hasMasterDetailChildTable(): boolean {
-    return this.metaInfo.fields.some((field) => field.type === ControlType.tableMasterDetail);
+    return this.metaInfo.fields.some((field) => field.type === ControlType.TableMasterDetail);
   }
 
   public isCheckListEmpty(field: GenericFieldInfo): boolean {

@@ -1,15 +1,18 @@
-import { FormControl, FormGroup } from '@angular/forms';
+import type { FormGroup } from "@angular/forms";
+import { FormControl } from '@angular/forms';
 import { Input, OnInit, Inject, Injectable, Component, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { MetaInfoService } from '../../services/meta-info.service';
 import { MetaInfoTag, GenericFieldInfo } from '../../meta-info/meta-info.model';
 import { CrudFormParameter } from '../../models/crud.model';
 import { CrudObjectsService } from '../../services/crud-objects.service';
 import { Subject } from 'rxjs';
+import { CrudConfig } from '../../models/crud-config';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
-@Component({
-  template: '',
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
+// @Component({
+//   template: '',
+//   changeDetection: ChangeDetectionStrategy.OnPush
+// })
 @Injectable()
 export abstract class CrudFieldBaseComponent implements OnInit, OnDestroy {
 
@@ -23,7 +26,8 @@ export abstract class CrudFieldBaseComponent implements OnInit, OnDestroy {
 
   constructor(public metaInfoService: MetaInfoService,
     public crudObjectsService: CrudObjectsService,
-    public dialogParameter: CrudFormParameter) {
+    public dialogParameter: CrudFormParameter,
+    public crudConfig: CrudConfig) {
   }
 
   ngOnInit(): void {
@@ -69,5 +73,9 @@ export abstract class CrudFieldBaseComponent implements OnInit, OnDestroy {
   public updateControl(data: any) {
     const value = this.crudObjectsService.getFieldValue(this.dialogParameter.data, this.field);
     this.setControlValue(value);
+  }
+
+  public get appearance(): MatFormFieldAppearance {
+    return this.crudConfig?.formFieldAppeareance ?? 'fill';
   }
 }

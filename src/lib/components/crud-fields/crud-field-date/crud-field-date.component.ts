@@ -1,28 +1,25 @@
-import { Component, OnInit, Inject, ChangeDetectionStrategy, Input } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, OnInit, Inject, ChangeDetectionStrategy, Input, ViewChild } from '@angular/core';
+import type { FormGroup } from "@angular/forms";
+//
+import { CrudFieldBaseComponent } from '../crud-field-base';
 import { MetaInfoService } from '../../../services/meta-info.service';
 import { CrudObjectsService } from '../../../services/crud-objects.service';
 import { CrudFormParameter } from '../../../models/crud.model';
-import { CrudFieldBaseComponent } from '../crud-field-base';
 import { MetaInfoTag, GenericFieldInfo } from '../../../meta-info/meta-info.model';
-import { FormGroup } from '@angular/forms';
-import { takeUntil } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
 import { CrudConfig } from '../../../models/crud-config';
 
 @Component({
-  selector: 'ngx-crud-field-select-multi',
-  templateUrl: './crud-field-select-multi.component.html',
+  selector: 'ngx-crud-field-date',
+  templateUrl: './crud-field-date.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CrudFieldSelectMultiComponent extends CrudFieldBaseComponent implements OnInit {
+export class CrudFieldDateComponent extends CrudFieldBaseComponent implements OnInit {
 
   @Input() metaInfoSelector: MetaInfoTag;
   @Input() field: GenericFieldInfo;
   @Input() fieldForm: FormGroup;
   @Input() data: any;
-
-  tableData$: BehaviorSubject<any[]>;
 
   constructor(
     public metaInfoService: MetaInfoService,
@@ -38,13 +35,12 @@ export class CrudFieldSelectMultiComponent extends CrudFieldBaseComponent implem
   }
 
   public setControlValue(value: any): void {
-    this.tableData$ = this.crudObjectsService.getChecklistData(this.field, this.dialogParameter.data);
-    this.tableData$.pipe(takeUntil(this.ngUnsubscribe)).subscribe((listData) => {
-      this.crudObjectsService.setLookupArrayId(this.field, listData, value, this.control);
-    });
+    // utc
+    this.control.setValue(value);
   }
 
   public getControlValue(): any {
-    return this.crudObjectsService.getLookupKeyArray(this.field, this.control?.value) || [];
+    // utc
+    return this.control?.value;
   }
 }

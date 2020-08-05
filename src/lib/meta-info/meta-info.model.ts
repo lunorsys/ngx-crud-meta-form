@@ -7,22 +7,24 @@ export enum _MetaInfoTag {
 export type MetaInfoTag = _MetaInfoTag | string;
 
 export enum ControlType {
-  string = 'string',
-  number = 'number',
-  boolean = 'boolean',
-  select = 'select',
-  selectMulti = 'select-multi',
-  selectMultiObject = 'select-multi-object',
-  selectMultiObjectJoin = 'select-multi-object-join',
-  selectAutocomplete = 'select-autocomplete',
-  checkList = 'checkList',
-  checkListObject = 'check-list-object',
-  checkListObjectJoin = 'check-list-object-join',
-  table = 'table',
-  tableJoin = 'table-join',
-  tableMasterDetail = 'table-master-detail',
-  referenceByParentData = 'reference-by-parent-data',
-  placeHolder = 'place-holder'
+  Boolean = 'boolean',
+  CheckList = 'checkList',
+  CheckListObject = 'check-list-object',
+  CheckListObjectJoin = 'check-list-object-join',
+  Date = 'date', // not yet supported
+  Datetime = 'datetime',
+  Number = 'number',
+  PlaceHolder = 'place-holder',
+  ReferenceByParentData = 'reference-by-parent-data',
+  Select = 'select',
+  SelectAutocomplete = 'select-autocomplete',  // not yet supported
+  SelectMulti = 'select-multi',
+  SelectMultiObject = 'select-multi-object',
+  SelectMultiObjectJoin = 'select-multi-object-join',
+  String = 'string',
+  Table = 'table',
+  TableJoin = 'table-join',
+  TableMasterDetail = 'table-master-detail'
 }
 
 export class GenericControlFormatOption {
@@ -59,11 +61,6 @@ export class Lookup {
   joinMetaInfoSelector?: MetaInfoTag;
   lookupKeyName?: string;
   getLookupValue?: (item: any, joinTables: any[][]) => string;
-}
-
-export class FilterMetaInfo {
-  title?: string;
-  field: GenericFieldInfo;
 }
 
 export enum CacheSupportLevel {

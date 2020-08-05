@@ -1,7 +1,6 @@
 import {
   Component, OnInit, ViewChild, Input, OnDestroy, Output, EventEmitter, ChangeDetectorRef,
   Inject,
-  AfterViewInit,
   AfterContentChecked,
 } from '@angular/core';
 import { MatAutocomplete } from '@angular/material/autocomplete';
@@ -9,7 +8,7 @@ import { MatDialogRef, MatDialog, MatDialogConfig } from '@angular/material/dial
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTable, MatTableDataSource } from '@angular/material/table';
-import { Subject, Observable, of } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import cloneDeep from 'lodash/cloneDeep';
 import Globalize from 'globalize/dist/globalize';
@@ -22,6 +21,8 @@ import { SnackBarService, SnackBarParameter, SnackBarType } from '../../services
 import { CrudFormComponent, CrudFormResult } from '../crud-form/crud-form.component';
 import { CACHE_TOKEN, ICacheService } from '../../interfaces/icache.service';
 import { MetaInfoService } from '../../services/meta-info.service';
+import moment from 'moment';
+import { LocalConvertService } from '../../services/locale-convert.service';
 
 @Component({
   selector: 'ngx-crud-table',
@@ -177,7 +178,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
             let lookupValuePreSortedItem = lookupKeyMetaInfo.fields.find((item: GenericFieldInfo) => item.isPreSortedItem);
             if (!lookupValuePreSortedItem) {
               lookupValuePreSortedItem = lookupKeyMetaInfo.fields.find((item: GenericFieldInfo) =>
-                (item.type === ControlType.number || item.type === ControlType.string) && item.isTableColumn);
+                (item.type === ControlType.Number || item.type === ControlType.String) && item.isTableColumn);
               if (!lookupValuePreSortedItem) {
                 this.sort = null;
               }
@@ -195,7 +196,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
         }
       } else {
         switch (sortField.type) {
-          case ControlType.string:
+          case ControlType.String:
             value = (data[sortHeaderId] as string)?.toLowerCase();
             break;
           default:
@@ -215,9 +216,9 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
 
   public getFieldValue(data: any, field: GenericFieldInfo): any {
     const value = data[field.name];
-    if (!value && field.type !== ControlType.number ||
+    if (!value && field.type !== ControlType.Number ||
       value === null ||
-      field.type === ControlType.number && isNaN(value)) {
+      field.type === ControlType.Number && isNaN(value)) {
       return '';
     }
 
@@ -225,7 +226,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     let numberValue: number;
     switch (field.type) {
 
-      case ControlType.number:
+      case ControlType.Number:
         if (typeof value === 'string') {
           numberValue = Number(value);
         } else {
@@ -234,9 +235,21 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
         result = this.numberFormatter(numberValue);
         break;
 
-      case ControlType.select:
-      case ControlType.selectAutocomplete:
+      case ControlType.Select:
+      case ControlType.SelectAutocomplete:
         result = this.crudObjectsService.getLookupValueById(field, value);
+        break;
+
+      case ControlType.Date:
+        // Work arround to keep the utc time
+        const date = moment(value);
+        result = date.subtract(date.utcOffset(), 'minutes').format(LocalConvertService.MOMENT_SHORT_DATE_EXACT);
+        break;
+
+      case ControlType.Datetime:
+        // Work arround to keep the utc time
+        const datetime = moment(value);
+        result = datetime.subtract(datetime.utcOffset(), 'minutes').format(LocalConvertService.MOMENT_SHORT_DATETIME_EXACT);
         break;
 
       default:
@@ -355,7 +368,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
     }
     const isAddButtonDisabled = this.metaInfo.fields.some((field) => {
       let isDisabled = false;
-      if (field.type === ControlType.referenceByParentData) {
+      if (field.type === ControlType.ReferenceByParentData) {
         const parentKeyName = field.parentKeyName || field.name;
         isDisabled = !this.parentData?.[parentKeyName];
       }
@@ -378,7 +391,7 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       let sortControl = this.metaTableInfo.fields.find(controlItem => controlItem.isPreSortedItem);
       if (!sortControl) {
         sortControl = this.metaTableInfo.fields.find((item: GenericFieldInfo) =>
-          (item.type === ControlType.string || item.type === ControlType.number) && item.isTableColumn);
+          (item.type === ControlType.String || item.type === ControlType.Number) && item.isTableColumn);
 
         if (!sortControl) {
           this.sort.disabled = true;
@@ -398,9 +411,9 @@ export class CrudTableComponent implements OnInit, OnDestroy, AfterContentChecke
       const filterDestination: string[] = [];
 
       this.metaTableInfo.fields.forEach((field) => {
-        if (field.isTableColumn && [ControlType.string, ControlType.number].includes(field.type)) {
+        if (field.isTableColumn && [ControlType.String, ControlType.Number].includes(field.type)) {
           let fieldValue = data[field.name];
-          if (field.type === ControlType.string) {
+          if (field.type === ControlType.String) {
             fieldValue = fieldValue?.toLowerCase();
           } else {
             fieldValue = fieldValue?.toString();

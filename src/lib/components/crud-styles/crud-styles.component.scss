@@ -52,6 +52,16 @@ ngx-crud-fields {
   overflow: auto;
   mat-card.mat-focus-indicator {
     margin: 5px 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    mat-card-content {
+      overflow: hidden;
+      ngx-crud-table {
+        display: flex;
+        overflow: auto;
+      }
+    }
   }
 }
 
